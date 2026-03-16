@@ -1264,31 +1264,6 @@ function showView(v){
   });
 }
 
-function updateModel(){
-  document.getElementById('d1v').textContent=document.getElementById('d1').value+'%';
-  document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
-  document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
-  document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
-  document.getElementById('wageV').textContent=document.getElementById('wageGrowth').value+'%';
-  document.getElementById('balmainInvV').textContent='$'+document.getElementById('balmainInv').value+'M';
-  document.getElementById('reRaiseV').textContent='$'+document.getElementById('reRaise').value+'M';
-  updateAssumptionDisplays();
-
-  const dids=['d1','d2','d3'];
-  for(let i=0;i<3;i++){
-    const on=tierOn[i];
-    document.getElementById('sp'+(i+1)).textContent=(on?'ON':'OFF')+' · '+document.getElementById(dids[i]).value+'%';
-    document.querySelectorAll('#spills .spill')[i].style.opacity=on?'1':'0.4';
-  }
-
-  const d=buildRevenue();
-  updateKPIs(d);
-  drawCharts(d);
-  buildSummary(d);
-  buildTiming(d);
-  buildBS(d);
-}
-
 // Default start month for each project selector
 // MONTHS index: 0=Apr-26, 1=May-26, 2=Jun-26, 3=Jul-26, 4=Aug-26, 5=Sep-26,
 //               6=Oct-26, 7=Nov-26, 8=Dec-26, 9=Jan-27, 10=Feb-27, 11=Mar-27,
