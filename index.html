@@ -563,9 +563,28 @@ tr.net td:first-child{color:var(--t1);}
       <div class="ass-grid">
 
         <div class="ass-card">
-          <div class="ass-card-label">$2B Additional Pipeline</div>
-          <div class="ass-mechanic">$2B of additional projects expected to emerge over 12 months as industry awareness grows. Currently modelled as a flat monthly draw from the start date. A conservative ramp assumes slower uptake early on.</div>
-          <div class="ass-formula">Monthly Volume = $2B ÷ Ramp Period (months)</div>
+          <div class="ass-card-label">Named Projects — Volume &amp; Draw Profile</div>
+          <div class="ass-mechanic">Each fixed-term project draws down over a 10-month build period following a realistic construction curve (slow mobilisation, peaks mid-project, tapers off). Quarterly funders ramp over 4 months then run at steady state. Start dates are controlled in the sidebar.</div>
+          <div class="ass-formula">Draw profile: 4% · 8% · 13% · 15% · 15% · 13% · 11% · 9% · 7% · 5%</div>
+          <div style="margin-top:10px;font-size:10px;color:var(--text2);line-height:1.8">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px">
+              <span style="color:var(--t3)">Avari</span><span>$30M · 10-month project</span>
+              <span style="color:var(--t3)">Moda</span><span>$100M · 10-month project</span>
+              <span style="color:var(--t3)">Radius</span><span>$25M/qtr · ongoing quarterly</span>
+              <span style="color:var(--t3)">Portside</span><span>$20M/qtr · ongoing quarterly</span>
+              <span style="color:var(--t3)">LogiSpace</span><span>$150M · 10-month project</span>
+              <span style="color:var(--t3)">Plenary #1</span><span>$150M · 10-month project</span>
+              <span style="color:var(--t3)">Plenary #2</span><span>$150M · 10-month project</span>
+              <span style="color:var(--t3)">Plenary #3</span><span>$150M · 10-month project</span>
+            </div>
+            <div style="margin-top:8px;color:var(--text3)">All generate: subcon fee 0.3%×80% + dual retention yield + transitory yield + early release fees. No upfront platform fee (Trilogy/Remara only).</div>
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">LogiSpace Pipeline ($2B)</div>
+          <div class="ass-mechanic">LogiSpace has an initial $150M project (modelled above) plus a broader pipeline of additional work expected to flow over 12 months as their portfolio grows. This represents LogiSpace's ongoing construction pipeline beyond the first project.</div>
+          <div class="ass-formula">Monthly Volume = Total Pipeline ÷ Ramp Period (months)</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Ramp period (months)</span><span class="ass-val" id="av_pipe2bRamp">12 months</span></div>
             <input type="range" id="a_pipe2bRamp" min="6" max="24" value="12" step="3" oninput="updateModel()">
@@ -576,8 +595,8 @@ tr.net td:first-child{color:var(--t1);}
 
         <div class="ass-card">
           <div class="ass-card-label">Balmain Lending Volume</div>
-          <div class="ass-mechanic">Balmain has indicated ~$350M lending per month. The model uses $200M/month as a conservative starting point with a ramp-up period before reaching full volume. Balmain is also a potential investor of up to $5M.</div>
-          <div class="ass-formula">Revenue = Monthly Lending Volume × Platform Fee %</div>
+          <div class="ass-mechanic">Balmain has indicated ~$350M lending per month. The model uses $200M/month as a conservative starting point with a ramp-up period before reaching full volume. Balmain is also a potential equity investor of up to $5M (Jul-26).</div>
+          <div class="ass-formula">Revenue = Subcon Fee + Dual Retention Yield + Transitory Yield + Early Release</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Monthly lending volume ($M)</span><span class="ass-val" id="av_balmainVol">$200M</span></div>
             <input type="range" id="a_balmainVol" min="50" max="350" value="200" step="25" oninput="updateModel()">
@@ -588,8 +607,8 @@ tr.net td:first-child{color:var(--t1);}
 
         <div class="ass-card">
           <div class="ass-card-label">Alceon Lending Volume</div>
-          <div class="ass-mechanic">Alceon has indicated ~$200M lending per month. Currently modelled at full volume from start date with no ramp. Adjust if you expect a slower onboarding process.</div>
-          <div class="ass-formula">Revenue = Monthly Lending Volume × Platform Fee %</div>
+          <div class="ass-mechanic">Alceon has indicated ~$200M lending per month. Same full Tier 3 revenue mechanics as other funders — subcon fee, dual retention yield, transitory yield and early release fees.</div>
+          <div class="ass-formula">Revenue = Subcon Fee + Dual Retention Yield + Transitory Yield + Early Release</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Monthly lending volume ($M)</span><span class="ass-val" id="av_alceonVol">$200M</span></div>
             <input type="range" id="a_alceonVol" min="50" max="300" value="200" step="25" oninput="updateModel()">
@@ -600,8 +619,8 @@ tr.net td:first-child{color:var(--t1);}
 
         <div class="ass-card">
           <div class="ass-card-label">AMAL — $9B Float</div>
-          <div class="ass-mechanic">AMAL manages a $9B float. Paid earns a 0.2% spread. This assumes 100% of the float is accessible from the start date — which may be optimistic. A partial uptake assumption is more conservative.</div>
-          <div class="ass-formula">Revenue = Float × Spread % × Uptake % ÷ 12</div>
+          <div class="ass-mechanic">AMAL manages a $9B float. Paid earns a yield spread on the float — this is different from the construction funders. No subcon fee, no retention, no early release. Pure float yield spread only.</div>
+          <div class="ass-formula">Revenue = Float × Accessible % × Spread % ÷ 12</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Float accessible (% of $9B)</span><span class="ass-val" id="av_amalPct">100%</span></div>
             <input type="range" id="a_amalPct" min="10" max="100" value="100" step="10" oninput="updateModel()">
