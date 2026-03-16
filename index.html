@@ -276,7 +276,7 @@ tr.net td:first-child{color:var(--t1);}
     </div>
     <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d1v">100%</span></div>
-      <input type="range" id="d1" min="50" max="100" value="100" step="5" oninput="updateModel()">
+      <input type="range" id="d1" min="50" max="100" value="55" step="5" oninput="updateModel()">
     </div>
   </div>
 </div>
@@ -290,15 +290,15 @@ tr.net td:first-child{color:var(--t1);}
     <div class="toggle on" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
   </div>
   <div class="tier-body open" id="tbody2">
-    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW: 25,000 contracts/yr pool, ramps to full penetration over 12 months from start. Paid.RE agencies under contract.</div>
+    <div class="tier-note">MBANSW: 25,000 contracts/yr × $100 (60% CoS). Paid.RE: 10% deposit on every sale held ~60 days on platform, yield earned on float. Jellis Craig 12K sales/yr × $1M · Marshall White 3K × $3M · REIV 30K × 10% uptake × $800K.</div>
     <div class="proj-list">
-      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">25K contracts</span>
+      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">25K × $100</span>
         <select class="proj-start" id="s_mbansw" onchange="updateModel()"></select></div>
-      <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">$400K/yr</span>
+      <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">12K sales/yr</span>
         <select class="proj-start" id="s_jc" onchange="updateModel()"></select></div>
-      <div class="proj-row"><span class="proj-name">Paid.RE — Marshall White</span><span class="proj-vol">$167K/yr</span>
+      <div class="proj-row"><span class="proj-name">Paid.RE — Marshall White</span><span class="proj-vol">3K × $3M avg</span>
         <select class="proj-start" id="s_mw" onchange="updateModel()"></select></div>
-      <div class="proj-row"><span class="proj-name">Paid.RE — REIV</span><span class="proj-vol">$193K/yr</span>
+      <div class="proj-row"><span class="proj-name">Paid.RE — REIV</span><span class="proj-vol">30K × 10% uptake</span>
         <select class="proj-start" id="s_reiv" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
@@ -1006,36 +1006,84 @@ function buildRevenue(){
 
   // TIER 2
   const t2parts={};
-  // MBANSW: 25,000 contracts/yr pool
-  // Ramps to 100% penetration over 12 months from start date
-  // Only 5% of those use financial features (early release, yield)
-  // Revenue = contracts/yr × financial feature adoption % × avg fee per contract / 12
-  // Avg fee per contract sourced from MBA/ABIC actuals scaled to MBANSW volume
-  // At full ramp (100% penetration, 5% fin features): ~$300K/yr licensing + fin fee revenue
-  const mbanswFinAdopt = gva('a_mbanswFinAdopt', 5)/100; // % using financial features
+  // MBANSW — licensing distribution deal
+  // Revenue: 25,000 contracts/yr × $100/contract = $2.5M/yr gross
+  // Cost of sales: 60% rev share back to MBANSW = $60/contract → 40% gross margin = $40/contract
+  // Penetration ramps to 100% over 12 months from start date
+  // Financial features (5% default): same mechanics as MBA/ABIC
+  //   Avg contract value $750K (midpoint of $500K–$1M residential/commercial mix)
+  const mbanswFinAdopt   = gva('a_mbanswFinAdopt', 5)/100;
+  const mbanswAvgContract = 750000; // $750K avg
   const mbanswPenetration = MONTHS.map((_,i)=>{
     if(i<sMbansw) return 0;
-    const mo = i-sMbansw;
-    // ramps to 100% over 12 months
-    return Math.min(1, (mo+1)/12);
+    return Math.min(1, (i-sMbansw+1)/12); // ramps to 100% over 12 months
   });
-  // Licensing fee ramps with penetration; financial features add on top
-  const mbanswLicenseFull = 300000; // $300K/yr at 100% penetration
-  const mbanswFinFeeFull  = 25000 * mbanswFinAdopt * 12; // 25K contracts × fin adoption × avg fee
-  t2parts.mbansw=MONTHS.map((_,i)=>{
-    if(i<sMbansw) return 0;
-    const pct = mbanswPenetration[i];
-    return (mbanswLicenseFull * pct + mbanswFinFeeFull * pct) / 12;
+
+  // Contract licence fees: $100/contract × 25,000 × penetration / 12
+  // Net revenue (after 60% CoS): $40/contract
+  const mbanswContractsMonthly = MONTHS.map((_,i)=> mbanswPenetration[i] * 25000 / 12);
+  t2parts.mbanswLicence = mbanswContractsMonthly.map(n => n * 40); // $40 net after rev share
+
+  // Financial features volume: contracts × fin adoption % × avg contract value / 12
+  const mbanswFinVol = MONTHS.map((_,i)=>{
+    const mo = i - sMbansw;
+    const finPct = i<sMbansw ? 0 : Math.min(mbanswFinAdopt, mbanswFinAdopt * (mo+1) / 6); // ramps over 6 months
+    return mbanswContractsMonthly[i] * 12 * finPct * mbanswAvgContract / 12;
   });
-  function reRamp(fullYr,start,i){
-    if(i<start)return 0;
-    const mo=i-start;
-    const r=[0.1,0.3,0.6,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
-    return fullYr/12*r[Math.min(mo,r.length-1)];
+
+  // Subcon fee on MBANSW financial features volume
+  t2parts.mbanswFinSubcon = mbanswFinVol.map(v=>v*subAlloc*subFee);
+
+  // Transitory yield only — no retention on smaller residential contracts
+  t2parts.mbanswFinTrans = mbanswFinVol.map(v=>v*(tranDays/365)*tranYieldR);
+  // ── PAID.RE — DEPOSIT FLOAT YIELD MODEL ──────────────────────────────────
+  // For every property sale: 10% deposit held on platform for avg 60 days
+  // Yield = deposit pool balance × yield rate p.a. ÷ 12
+  // Deposit pool = monthly sales volume × 10% deposit × (60/30) months avg hold
+  //
+  // Jellis Craig:    12,000 sales/yr × $1.0M avg = $12B/yr sales volume
+  // Marshall White:   3,000 sales/yr × $3.0M avg =  $9B/yr sales volume
+  // REIV:            30,000 sales/yr × 10% pickup × $800K avg = $2.4B/yr at full ramp
+  //
+  // Onboarding: Jellis + MW contracted for all revenue over 12 months from start
+  //             REIV ramps from 0 to 10% pickup over 12 months
+
+  const reDepositPct  = 0.10;   // 10% deposit on each sale
+  const reHoldDays    = 60;     // avg days deposit sits on platform
+  const reHoldMonths  = reHoldDays / 30; // = 2 months
+
+  // Monthly sales volume — ramp as agency onboards over 12 months
+  function reMonthlyVol(annualVol, start, i){
+    if(i<start) return 0;
+    const mo = i - start;
+    // Linear ramp to full volume over 12 months
+    const pct = Math.min(1, (mo+1)/12);
+    return annualVol / 12 * pct;
   }
-  t2parts.jc   =MONTHS.map((_,i)=>reRamp(400000,sJC,i));
-  t2parts.mw   =MONTHS.map((_,i)=>reRamp(166667,sMW,i));
-  t2parts.reiv =MONTHS.map((_,i)=>reRamp(193000,sREIV,i));
+
+  // Jellis Craig: 12,000 sales/yr × $1M
+  const jcAnnualVol  = 12000 * 1e6;
+  const jcMonthly    = MONTHS.map((_,i) => reMonthlyVol(jcAnnualVol,  sJC, i));
+
+  // Marshall White: 3,000 sales/yr × $3M
+  const mwAnnualVol  = 3000  * 3e6;
+  const mwMonthly    = MONTHS.map((_,i) => reMonthlyVol(mwAnnualVol,  sMW, i));
+
+  // REIV: 30,000 × 10% uptake × $800K — pickup ramps from 0 to 10% over 12 months
+  const reivAnnualVolFull = 30000 * 0.10 * 800000; // at full 10% uptake
+  const reivMonthly  = MONTHS.map((_,i) => reMonthlyVol(reivAnnualVolFull, sREIV, i));
+
+  // Deposit pool balance each month = monthly sales × deposit % × hold months
+  // (rolling 2-month float sitting in system)
+  const jcPool   = jcMonthly.map(v   => v * reDepositPct * reHoldMonths);
+  const mwPool   = mwMonthly.map(v   => v * reDepositPct * reHoldMonths);
+  const reivPool = reivMonthly.map(v  => v * reDepositPct * reHoldMonths);
+
+  // Yield on deposit pool
+  t2parts.jc   = jcPool.map(v   => v * retYieldR / 12);
+  t2parts.mw   = mwPool.map(v   => v * retYieldR / 12);
+  t2parts.reiv = reivPool.map(v  => v * retYieldR / 12);
+
   // Note: RE platform raise is equity, not revenue — handled in cashflow/capital events separately
   const tier2=MONTHS.map((_,i)=>Object.values(t2parts).reduce((s,a)=>s+a[i],0)*d2);
 
@@ -1142,7 +1190,10 @@ function buildRevenue(){
   const ohdBase=[69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
   const ohd=ohdBase.map(v=>v*ohdMult);
 
-  const cosB=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  // Cost of sales — base from Excel P&L plus MBANSW rev share (60% of $100/contract)
+  const cosBbase=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  const mbanswCoS = mbanswContractsMonthly.map(n => n * 60); // $60/contract CoS
+  const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
   const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
