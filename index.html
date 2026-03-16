@@ -19,6 +19,58 @@ header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex
 .logo-mark{font-family:'DM Serif Display',serif;font-size:26px;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .logo-sub{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-left:12px;}
 
+.print-btn{
+  font-family:'DM Mono',monospace;font-size:11px;
+  background:var(--accent);border:none;color:white;
+  padding:7px 16px;border-radius:5px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:background .2s;
+}
+.print-btn:hover{background:#1d4ed8;}
+.print-btn svg{width:14px;height:14px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── PRINT STYLES ─────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 12mm; }
+
+  /* Hide everything except print content */
+  header, aside, .kpi-grid, .view-tabs, .charts-grid,
+  #chartCapitalIn, .chart-card, .spills, .print-btn,
+  #view-timing, #view-assumptions, #view-bs-kpis { display:none !important; }
+
+  body { background: white !important; color: #111 !important; font-size: 9pt; }
+  .main { display: block !important; }
+  .content { padding: 0 !important; overflow: visible !important; }
+
+  /* Show all three report views when printing */
+  #view-summary, #view-pl, #view-cashflow, #view-bs { display: block !important; }
+
+  /* Page breaks between sections */
+  #view-pl    { page-break-before: always; }
+  #view-cashflow { page-break-before: always; }
+  #view-bs    { page-break-before: always; }
+
+  /* Section titles */
+  .tbl-hdr { background: #f3f4f6 !important; color: #111 !important; border-bottom: 1px solid #ccc !important; }
+
+  /* Table styles */
+  .tbl-card { border: 1px solid #ccc !important; border-radius: 0 !important; }
+  .tbl-wrap { overflow: visible !important; }
+  table { width: 100% !important; font-size: 7pt !important; }
+  th { color: #666 !important; background: #f9fafb !important; border-bottom: 1px solid #ddd !important; padding: 4px 6px !important; }
+  td { color: #111 !important; border-bottom: 1px solid #eee !important; padding: 3px 6px !important; }
+  td:first-child { background: white !important; }
+  th:first-child { background: #f9fafb !important; }
+  tr.net td { color: #059669 !important; background: #f0fdf4 !important; }
+  tr.ttl td { font-weight: 700 !important; color: #111 !important; }
+  tr.sec td { color: #6b7280 !important; background: #f9fafb !important; }
+  .neg { color: #dc2626 !important; }
+  .pos { color: #059669 !important; }
+
+  /* Print header */
+  .print-header { display: block !important; }
+}
+
 .main{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 68px);}
 
 aside{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:0;height:calc(100vh - 68px);}
@@ -132,8 +184,20 @@ tr.net td:first-child{color:var(--t1);}
     <span class="logo-mark">Paid</span>
     <span class="logo-sub">Investor Financial Model</span>
   </div>
-  <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+    <button class="print-btn" onclick="printReports()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print PDF
+    </button>
+  </div>
 </header>
+
+<!-- Hidden header shown only when printing -->
+<div class="print-header" style="display:none;margin-bottom:16px;border-bottom:2px solid #111;padding-bottom:8px">
+  <div style="font-size:20pt;font-weight:700">Paid — Investor Financial Model</div>
+  <div style="font-size:9pt;color:#666;margin-top:4px">Forecast: Apr 2026 – Dec 2027 · Printed <span id="printDate"></span></div>
+</div>
 
 <div class="main">
 <aside>
@@ -1509,6 +1573,17 @@ function populateDropdowns(){
       `<option value="${i}"${i===defaultVal?' selected':''}>${m}</option>`
     ).join('');
   });
+}
+
+function printReports(){
+  // Set print date
+  const d = new Date();
+  const el = document.getElementById('printDate');
+  if(el) el.textContent = d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+
+  // Make sure all three report views are visible for printing
+  // (print CSS will show them all regardless of current tab)
+  window.print();
 }
 
 // Init
