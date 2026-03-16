@@ -535,8 +535,7 @@ tr.net td:first-child{color:var(--t1);}
             <input type="range" id="a_retWith" min="5" max="15" value="10" step="1" oninput="updateModel()">
             <div class="ass-row" style="margin-top:6px"><span>Retention cap (% of contract)</span><span class="ass-val" id="av_retCap">5%</span></div>
             <input type="range" id="a_retCap" min="2" max="10" value="5" step="0.5" oninput="updateModel()">
-            <div class="ass-row" style="margin-top:6px"><span>Avg retention hold period</span><span class="ass-val" id="av_retHold">15 months</span></div>
-            <input type="range" id="a_retHold" min="12" max="24" value="15" step="1" oninput="updateModel()">
+            <div class="hint" style="margin-top:6px;color:var(--text3)">Retention is released when each project reaches practical completion — not modelled as a fixed hold period. The cap mechanic above controls how much accumulates.</div>
             <div class="ass-row" style="margin-top:6px"><span>Yield rate (p.a.)</span><span class="ass-val" id="av_retYield">4%</span></div>
             <input type="range" id="a_retYield" min="2" max="8" value="4" step="0.5" oninput="updateModel()">
           </div>
@@ -664,8 +663,7 @@ tr.net td:first-child{color:var(--t1);}
 
           <div class="ass-controls" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
             <div>
-              <div class="ass-row"><span>Default salary — future hires</span><span class="ass-val" id="av_reSalary">$120K</span></div>
-              <input type="range" id="a_reSalary" min="80" max="250" value="120" step="10" oninput="updateModel()">
+              <div class="hint">Each future hire has their own salary selector in the grid above.</div>
             </div>
             <div>
               <div class="ass-row"><span>Super rate</span><span class="ass-val" id="av_superRate">12%</span></div>
@@ -1556,6 +1554,7 @@ function updateModel(){
   }
 
   const d=buildRevenue();
+  updateAssumptionDisplays();
   updateKPIs(d);
   drawCharts(d);
   buildSummary(d);
