@@ -19,6 +19,94 @@ header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex
 .logo-mark{font-family:'DM Serif Display',serif;font-size:26px;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .logo-sub{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-left:12px;}
 
+.print-btn{
+  font-family:'DM Mono',monospace;font-size:11px;
+  background:var(--accent);border:none;color:white;
+  padding:7px 16px;border-radius:5px;cursor:pointer;
+  display:flex;align-items:center;gap:6px;
+  transition:background .2s;
+}
+.print-btn:hover{background:#1d4ed8;}
+.print-btn svg{width:14px;height:14px;fill:none;stroke:white;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+
+/* ── PRINT STYLES ─────────────────────────────────────────── */
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+
+  /* Hide everything except print content */
+  header, aside, .kpi-grid, .view-tabs, .charts-grid,
+  #chartCapitalIn, .chart-card, .spills, .print-btn,
+  #view-timing, #view-assumptions { display:none !important; }
+
+  body { background: white !important; color: #111 !important; font-size: 8pt; }
+  .main { display: block !important; }
+  .content { padding: 0 !important; overflow: visible !important; }
+
+  /* Show all four report views when printing */
+  #view-summary, #view-pl, #view-cashflow, #view-bs { display: block !important; }
+
+  /* Page breaks between sections */
+  #view-pl       { page-break-before: always; }
+  #view-cashflow { page-break-before: always; }
+  #view-bs       { page-break-before: always; }
+
+  /* Critical: allow tables to overflow and scale down to fit */
+  .tbl-wrap {
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  .tbl-card {
+    border: 1px solid #ccc !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* Scale table to fit page width — key fix */
+  table {
+    width: 100% !important;
+    table-layout: auto !important;
+    font-size: 5.5pt !important;
+    border-collapse: collapse !important;
+    transform-origin: top left;
+  }
+
+  /* Shrink columns to fit */
+  th, td {
+    padding: 2px 3px !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  th:first-child, td:first-child {
+    position: static !important; /* remove sticky for print */
+    min-width: 80px !important;
+    max-width: 100px !important;
+    white-space: normal !important;
+    font-size: 5.5pt !important;
+  }
+
+  /* Colours */
+  .tbl-hdr { background: #f3f4f6 !important; color: #111 !important; border-bottom: 1px solid #ccc !important; font-size: 9pt !important; padding: 6px 10px !important; }
+  th { color: #555 !important; background: #f9fafb !important; border-bottom: 1px solid #ddd !important; }
+  td { color: #111 !important; border-bottom: 1px solid #eee !important; }
+  td:first-child { background: white !important; color: #444 !important; }
+  th:first-child { background: #f9fafb !important; }
+  tr.net td { color: #059669 !important; background: #f0fdf4 !important; }
+  tr.ttl td { font-weight: 700 !important; background: #f9fafb !important; }
+  tr.sec td { color: #6b7280 !important; background: #f3f4f6 !important; font-size: 5pt !important; letter-spacing: 0 !important; }
+  .neg { color: #dc2626 !important; }
+  .pos { color: #059669 !important; }
+
+  /* Actuals columns italic */
+  td[style*="font-style:italic"], th[style*="font-style:italic"] { color: #888 !important; }
+
+  /* Print header */
+  .print-header { display: block !important; }
+  .print-header { margin-bottom: 10px !important; padding-bottom: 6px !important; border-bottom: 2px solid #111 !important; }
+}
+
 .main{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 68px);}
 
 aside{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:0;height:calc(100vh - 68px);}
@@ -132,8 +220,20 @@ tr.net td:first-child{color:var(--t1);}
     <span class="logo-mark">Paid</span>
     <span class="logo-sub">Investor Financial Model</span>
   </div>
-  <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+    <button class="print-btn" onclick="printReports()">
+      <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print PDF
+    </button>
+  </div>
 </header>
+
+<!-- Hidden header shown only when printing -->
+<div class="print-header" style="display:none;margin-bottom:16px;border-bottom:2px solid #111;padding-bottom:8px">
+  <div style="font-size:20pt;font-weight:700">Paid — Investor Financial Model</div>
+  <div style="font-size:9pt;color:#666;margin-top:4px">Forecast: Apr 2026 – Dec 2027 · Printed <span id="printDate"></span></div>
+</div>
 
 <div class="main">
 <aside>
@@ -165,8 +265,18 @@ tr.net td:first-child{color:var(--t1);}
       <div class="hint">~400 contracts now (20%) — ramping. Scale = contracts being processed.</div>
     </div>
     <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">Financial features — current uptake</span><span class="sl-val" id="mbaFinAdoptV">1%</span></div>
+      <input type="range" id="a_mbaFinAdopt" min="0" max="10" value="1" step="0.5" oninput="updateModel()">
+      <div class="hint">% of contracts using subcon fee / yield features. Avg contract $2M.</div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">Financial features — target uptake</span><span class="sl-val" id="mbaFinTargetV">5%</span></div>
+      <input type="range" id="a_mbaFinTarget" min="1" max="20" value="5" step="0.5" oninput="updateModel()">
+      <div class="hint">Target % reached over ~24 months from start.</div>
+    </div>
+    <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d1v">100%</span></div>
-      <input type="range" id="d1" min="50" max="100" value="100" step="5" oninput="updateModel()">
+      <input type="range" id="d1" min="50" max="100" value="55" step="5" oninput="updateModel()">
     </div>
   </div>
 </div>
@@ -180,9 +290,9 @@ tr.net td:first-child{color:var(--t1);}
     <div class="toggle on" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
   </div>
   <div class="tier-body open" id="tbody2">
-    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW: 25,000 contracts/yr pool, ramps to full penetration over 12 months from start. Paid.RE agencies under contract.</div>
+    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW: 25,000 contracts/yr × $100 (60% CoS rev share), ramps to full penetration over 12 months. Financial features = subcon fee + transitory yield only (no retention on smaller residential jobs). Paid.RE agencies under contract.</div>
     <div class="proj-list">
-      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">25K contracts</span>
+      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">25K × $100</span>
         <select class="proj-start" id="s_mbansw" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">$400K/yr</span>
         <select class="proj-start" id="s_jc" onchange="updateModel()"></select></div>
@@ -236,7 +346,7 @@ tr.net td:first-child{color:var(--t1);}
         <select class="proj-start" id="s_alceon" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">AMAL ($9B float)</span><span class="proj-vol">0.2% spread</span>
         <select class="proj-start" id="s_amal" onchange="updateModel()"></select></div>
-      <div class="proj-row"><span class="proj-name">$2B pipeline</span><span class="proj-vol">Over 12 months</span>
+      <div class="proj-row"><span class="proj-name">LogiSpace Pipeline</span><span class="proj-vol">$2B over 12mo</span>
         <select class="proj-start" id="s_pipe2b" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
@@ -279,7 +389,7 @@ tr.net td:first-child{color:var(--t1);}
   <div class="sl-group" style="margin-top:4px">
     <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
     <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
-    <div class="hint">Also a lending customer — separate lines</div>
+    <div class="hint">Equity in Jul-26 — shown on cash chart. Also a lending customer (Tier 3).</div>
   </div>
   <div class="sl-group">
     <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$1.5M</span></div>
@@ -318,6 +428,10 @@ tr.net td:first-child{color:var(--t1);}
   <div class="charts-grid">
     <div class="chart-card"><div class="chart-title">Monthly Revenue by Tier</div><canvas id="chartRev" height="200"></canvas></div>
     <div class="chart-card"><div class="chart-title">Cash Position &amp; EBITDA</div><canvas id="chartCash" height="200"></canvas></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:22px">
+    <div class="chart-title">Capital Events — Equity Raises, Grants &amp; Loan Repayments</div>
+    <canvas id="chartCapitalIn" height="130"></canvas>
   </div>
 
   <div id="view-summary">
@@ -413,9 +527,9 @@ tr.net td:first-child{color:var(--t1);}
         </div>
 
         <div class="ass-card">
-          <div class="ass-card-label">Retention Yield</div>
-          <div class="ass-mechanic">On every claim, Paid withholds 10% until the running retention balance reaches 5% of the total contract value — then withholding stops. The pooled retention earns yield while it sits in the system. Example: on a $50M contract, retention caps at $2.5M after $25M of claims.</div>
-          <div class="ass-formula">Withheld = 10% per claim until balance = Contract Value × Retention Cap %<br>Yield = Running Balance × Yield Rate ÷ 12</div>
+          <div class="ass-card-label">Retention Yield — Dual Pool</div>
+          <div class="ass-mechanic">Two separate retention pools both sit in Paid's system and earn yield. <strong style="color:var(--text)">Pool 1 (Funder → Builder):</strong> when a funder releases a progress claim, up to 5% of total contract value is withheld from the builder. <strong style="color:var(--text)">Pool 2 (Builder → Subcontractor):</strong> when the builder pays subs, a separate 5% is withheld. Both pools accrue at 10% per claim until each hits its 5% cap. Combined, this means up to 10% of contract value sits in Paid earning yield.</div>
+          <div class="ass-formula">Pool 1: Withheld = 10% per funder claim until balance = Contract Value × 5%<br>Pool 2: Withheld = 10% per sub claim until balance = Sub Contract Value × 5%<br>Yield = (Pool 1 + Pool 2) × Yield Rate ÷ 12</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Withholding rate per claim</span><span class="ass-val" id="av_retWith">10%</span></div>
             <input type="range" id="a_retWith" min="5" max="15" value="10" step="1" oninput="updateModel()">
@@ -581,22 +695,22 @@ const NA=9; // number of actual months
 
 // Actuals from Excel (read-only — not affected by scenario sliders)
 const ACTUALS = {
-  revenue:   [0,     3197,  10541, 13342, 14845, 20401, 27142, 54485, 74045],
-  cos:       [0,     831,   5017,  5546,  6129,  7048,  8106,  10720, 12328],
-  grossProfit:[0,    2366,  5524,  7796,  8716,  13353, 19036, 43765, 61717],
+  revenue:   [0,     3197,  10541, 13342, 14845, 20401, 27142, 27243, 37023],
+  cos:       [0,     831,   5017,  5546,  6129,  7048,  8106,  5360,  6164],
+  grossProfit:[0,    2366,  5524,  7796,  8716,  13353, 19036, 21883, 30859],
   govtGrant: [0,     0,     0,     590718,0,     0,     0,     0,     0    ],
-  expenses:  [0,     108270,176425,119325,126930,98594, 98568, 100995,101032],
-  ebitda:    [0,    -105904,-170901,479189,-118214,-85241,-79532,-57230,-39315],
+  expenses:  [0,     108270,176425,119325,126930,98594, 98568, 50498, 50516],
+  ebitda:    [0,    -105904,-170901,479189,-118214,-85241,-79532,-28615,-19658],
   // cashflow
   openingCash:[55272,376896,68480, 160887,43041, 50103, 5789,  306193,540513],
-  cashIn:    [444525,70541, 217278,14583, 120401,227142,436937,354485,74045],
-  cashOut:   [122901,378957,124871,132429,113340,271455,136533,120165,121810],
-  closingCash:[376896,68480,160887,43041, 50103, 5789,  306193,540513,492748],
+  cashIn:    [444525,70541, 217278,14583, 120401,227142,436937,177243,37023],
+  cashOut:   [122901,378957,124871,132429,113340,271455,136533,60083, 60905],
+  closingCash:[376896,68480,160887,43041, 50103, 5789,  306193,270257,246374],
   // breakdown
-  trilogy:   [0,     458,   203,   1990,  454,   1080,  2700,  9180,  14040],
-  remara:    [0,     0,     0,     0,     1991,  4257,  7132,  22363, 33458],
-  mbaAbic:   [0,     2584,  9801,  10967, 12229, 14164, 16436, 18766, 20546],
-  other:     [0,     154,   538,   385,   171,   900,   900,   900,   900  ],
+  trilogy:   [0,     458,   203,   1990,  454,   1080,  2700,  4590,  7020],
+  remara:    [0,     0,     0,     0,     1991,  4257,  7132,  11182, 16729],
+  mbaAbic:   [0,     2584,  9801,  10967, 12229, 14164, 16436, 9383,  10273],
+  other:     [0,     154,   538,   385,   171,   900,   900,   450,   450  ],
 };
 
 let tierOn=[true,true,true];
@@ -804,61 +918,124 @@ function buildRevenue(){
   t1parts.platform = contractedV.map(v=>v*platFee);
   t1parts.subcon   = contractedV.map(v=>v*subAlloc*subFee);
 
-  // CORRECT RETENTION MECHANICS:
-  // Each month: withhold retWith% of (claim × subAlloc) UNTIL running balance hits retCap% of contract value
-  // Contract value proxy: total volume on platform so far × retCap gives the cap
-  // We track a running retention balance and stop accruing when cap is hit per contract
-  // Simplified: use cumulative contracted volume as proxy for "total contract value"
-  let retBal = 0;
+  // DUAL RETENTION POOLS — both earn yield for Paid:
+  //
+  // Pool 1: Funder → Builder retention
+  //   When funder pays builder, up to 5% of total contract value is withheld
+  //   Withheld at retWith% per claim until balance = retCap% of contract value
+  //   Applied to full claim value (contractedV)
+  //
+  // Pool 2: Builder → Subcontractor retention
+  //   When builder pays subcontractor, separate 5% withheld
+  //   Applied to subcontractor portion only (contractedV × subAlloc)
+  //
+  // Both pools sit in Paid's system and earn yield at retYieldR p.a.
+
+  let retBalBuilder = 0;   // Pool 1: funder → builder
+  let retBalSubcon  = 0;   // Pool 2: builder → subcontractor
   let cumContracted = 0;
+
   t1parts.retYield = MONTHS.map((_,i)=>{
-    const claimVal = contractedV[i] * subAlloc;
-    cumContracted += contractedV[i];
-    const retCapAmt = cumContracted * retCap;
-    const spaceLeft = Math.max(0, retCapAmt - retBal);
-    const withheld  = Math.min(claimVal * retWith, spaceLeft);
-    retBal += withheld;
-    return retBal * retYieldR / 12;
+    const fullClaim  = contractedV[i];               // total funder payment
+    const subconClaim= contractedV[i] * subAlloc;    // subcontractor portion
+
+    cumContracted += fullClaim;
+    const retCapAmt = cumContracted * retCap;        // 5% of cumulative contract value
+
+    // Pool 1: funder → builder (on full claim)
+    const space1    = Math.max(0, retCapAmt - retBalBuilder);
+    const withheld1 = Math.min(fullClaim * retWith, space1);
+    retBalBuilder  += withheld1;
+
+    // Pool 2: builder → subcontractor (on subcon portion, separate cap)
+    const space2    = Math.max(0, retCapAmt * subAlloc - retBalSubcon);
+    const withheld2 = Math.min(subconClaim * retWith, space2);
+    retBalSubcon   += withheld2;
+
+    // Combined yield on both pools
+    return (retBalBuilder + retBalSubcon) * retYieldR / 12;
   });
 
   t1parts.tranYield = contractedV.map(v=>v*(tranDays/365)*tranYieldR);
   // Early release ramps from 0% as feature comes online — reaches full erAdopt by month 9
   t1parts.earlyRel  = MONTHS.map((_,i)=>contractedV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
 
-  // MBA/ABIC (Tier 1 — already live)
-  // ~2,000 contracts/yr pool. Currently ~400 contracts (20%), still ramping.
-  // Revenue figures from actual P&L — these are real contract fees already being earned.
-  // mbaA slider = current penetration % of 2,000 contract pool (default 20% = 400 contracts)
-  // The base arrays already reflect the revenue at ~400 contracts; scale proportionally.
-  const mbaScale = mbaA / 0.20; // 0.20 = 20% = ~400 contracts (current baseline)
+  // MBA/ABIC contract fees (from actual P&L — real revenue already earned)
+  // ~2,000 contracts/yr pool, avg $179/contract incl GST
+  // mbaA slider = penetration % of pool (default 20% = ~400 contracts)
+  const mbaScale = mbaA / 0.20;
   const mbaB=[1089,1197.9,1317.69,1449.46,1594.40,1753.85,1841.54,1933.61,2030.30,2131.81,2238.40,2350.32,2467.84,2591.23,2720.79,2856.83,2999.67,3149.65,3307.14,3472.49,3646.12];
   const abcB=[6013.68,7216.42,8659.70,10391.64,12469.97,14963.97,17208.56,19789.84,22758.32,26172.07,30097.88,34612.56,38073.82,41881.20,46069.32,50676.25,55743.88,61318.26,67450.09,74195.10,81614.61];
   t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*mbaScale:0);
+
+  // MBA/ABIC FINANCIAL FEATURES
+  // Avg contract value = $2M. Currently 1% uptake, ramping to 5% over ~24 months.
+  // Volume on financial features = contracts active × avg contract value × monthly draw rate
+  // Assume monthly draw = contract value / 12 (spread evenly)
+  const mbaFinAdopt   = gva('a_mbaFinAdopt', 1)/100;   // current: 1%
+  const mbaFinTarget  = gva('a_mbaFinTarget', 5)/100;  // target: 5% over 24 months
+  const mbaAvgContract = 2e6;                           // $2M avg contract value
+  const mbaContractsActive = MONTHS.map((_,i)=>{
+    if(i<sMba) return 0;
+    // Contracts penetration ramps with mbaA (already modelled)
+    // Financial feature adoption ramps from mbaFinAdopt to mbaFinTarget over 24 months
+    const mo = i - sMba;
+    const finPct = Math.min(mbaFinTarget, mbaFinAdopt + (mbaFinTarget - mbaFinAdopt) * mo / 24);
+    // Active contracts using financial features = total pool × penetration × fin adoption
+    return 2000 * mbaA * finPct;
+  });
+  // Monthly construction volume flowing through financial features
+  const mbaFinVol = mbaContractsActive.map(n => n * mbaAvgContract / 12);
+
+  // Apply same mechanics as Tier 1: subcon fee + dual retention yield + transitory yield
+  t1parts.mbaFinSubcon = mbaFinVol.map(v=>v*subAlloc*subFee);
+  t1parts.mbaFinTrans  = mbaFinVol.map(v=>v*(tranDays/365)*tranYieldR);
+
+  // Dual retention on MBA/ABIC financial features users
+  let mbaRetBal1=0, mbaRetBal2=0, mbaCumVol=0;
+  t1parts.mbaFinRet = MONTHS.map((_,i)=>{
+    const fc=mbaFinVol[i], sc=mbaFinVol[i]*subAlloc;
+    mbaCumVol+=fc;
+    const cap=mbaCumVol*retCap;
+    const s1=Math.max(0,cap-mbaRetBal1); mbaRetBal1+=Math.min(fc*retWith,s1);
+    const s2=Math.max(0,cap*subAlloc-mbaRetBal2); mbaRetBal2+=Math.min(sc*retWith,s2);
+    return (mbaRetBal1+mbaRetBal2)*retYieldR/12;
+  });
+
   const tier1=MONTHS.map((_,i)=>Object.values(t1parts).reduce((s,a)=>s+a[i],0)*d1);
 
   // TIER 2
   const t2parts={};
-  // MBANSW: 25,000 contracts/yr pool
-  // Ramps to 100% penetration over 12 months from start date
-  // Only 5% of those use financial features (early release, yield)
-  // Revenue = contracts/yr × financial feature adoption % × avg fee per contract / 12
-  // Avg fee per contract sourced from MBA/ABIC actuals scaled to MBANSW volume
-  // At full ramp (100% penetration, 5% fin features): ~$300K/yr licensing + fin fee revenue
-  const mbanswFinAdopt = gva('a_mbanswFinAdopt', 5)/100; // % using financial features
+  // MBANSW — licensing distribution deal
+  // Revenue: 25,000 contracts/yr × $100/contract = $2.5M/yr gross
+  // Cost of sales: 60% rev share back to MBANSW = $60/contract → 40% gross margin = $40/contract
+  // Penetration ramps to 100% over 12 months from start date
+  // Financial features (5% default): same mechanics as MBA/ABIC
+  //   Avg contract value $750K (midpoint of $500K–$1M residential/commercial mix)
+  const mbanswFinAdopt   = gva('a_mbanswFinAdopt', 5)/100;
+  const mbanswAvgContract = 750000; // $750K avg
   const mbanswPenetration = MONTHS.map((_,i)=>{
     if(i<sMbansw) return 0;
-    const mo = i-sMbansw;
-    // ramps to 100% over 12 months
-    return Math.min(1, (mo+1)/12);
+    return Math.min(1, (i-sMbansw+1)/12); // ramps to 100% over 12 months
   });
-  // Licensing fee ramps with penetration; financial features add on top
-  const mbanswLicenseFull = 300000; // $300K/yr at 100% penetration
-  const mbanswFinFeeFull  = 25000 * mbanswFinAdopt * 12; // 25K contracts × fin adoption × avg fee
-  t2parts.mbansw=MONTHS.map((_,i)=>{
-    if(i<sMbansw) return 0;
-    const pct = mbanswPenetration[i];
-    return (mbanswLicenseFull * pct + mbanswFinFeeFull * pct) / 12;
+
+  // Contract licence fees: $100/contract × 25,000 × penetration / 12
+  // Net revenue (after 60% CoS): $40/contract
+  const mbanswContractsMonthly = MONTHS.map((_,i)=> mbanswPenetration[i] * 25000 / 12);
+  t2parts.mbanswLicence = mbanswContractsMonthly.map(n => n * 40); // $40 net after rev share
+
+  // Financial features volume: contracts × fin adoption % × avg contract value / 12
+  const mbanswFinVol = MONTHS.map((_,i)=>{
+    const mo = i - sMbansw;
+    const finPct = i<sMbansw ? 0 : Math.min(mbanswFinAdopt, mbanswFinAdopt * (mo+1) / 6); // ramps over 6 months
+    return mbanswContractsMonthly[i] * 12 * finPct * mbanswAvgContract / 12;
   });
+
+  // Subcon fee on MBANSW financial features volume
+  t2parts.mbanswFinSubcon = mbanswFinVol.map(v=>v*subAlloc*subFee);
+
+  // Transitory yield only — no retention on smaller residential contracts
+  t2parts.mbanswFinTrans = mbanswFinVol.map(v=>v*(tranDays/365)*tranYieldR);
   function reRamp(fullYr,start,i){
     if(i<start)return 0;
     const mo=i-start;
@@ -868,21 +1045,65 @@ function buildRevenue(){
   t2parts.jc   =MONTHS.map((_,i)=>reRamp(400000,sJC,i));
   t2parts.mw   =MONTHS.map((_,i)=>reRamp(166667,sMW,i));
   t2parts.reiv =MONTHS.map((_,i)=>reRamp(193000,sREIV,i));
-  t2parts.reEq =MONTHS.map((_,i)=>(i===15||i===16)?reR/2:0);
+  // Note: RE platform raise is equity, not revenue — handled in cashflow/capital events separately
   const tier2=MONTHS.map((_,i)=>Object.values(t2parts).reduce((s,a)=>s+a[i],0)*d2);
 
-  // TIER 3
+  // TIER 3 — all pipeline funders mirror Tier 1 mechanics EXCEPT upfront platform fee
+  // (platform fee 0.2% is Trilogy/Remara specific for now — toggle in Assumptions to apply broadly)
+  //
+  // Each funder gets: subcon fee + dual retention yield + transitory yield + early release
+  // $2B pipeline renamed LogiSpace Pipeline — it's LogiSpace's broader work pipeline
+
   const t3parts={};
-  const pipV=MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
-  t3parts.pipSubcon  =pipV.map(v=>v*subAlloc*subFee);
-  t3parts.pipPlatform=pipV.map((v)=>platAll?v*platFee:0);
+
+  // Total pipeline volume across all funders each month
+  const pipV = MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
+
+  // Balmain & Alceon: ongoing lending volumes with T3 ramp
   const bScale=bInv/5;
-  // Balmain & Alceon: T3 ramp on top of any configured volume ramp
-  t3parts.balmain=MONTHS.map((_,i)=>i<sBa?0:balmainVol*platFee*bScale*t3Scale(sBa,i)*rampAct(sBa,balmainRamp,i));
-  t3parts.alceon =MONTHS.map((_,i)=>i<sAl?0:alceonVol*platFee*t3Scale(sAl,i)*rampAct(sAl,alceonRamp,i));
-  // AMAL: T3 ramp — large relationship, slow to engage
-  t3parts.amal   =MONTHS.map((_,i)=>i<sAm?0:9e9*amalPct*amalSpread/12*t3Scale(sAm,i));
-  t3parts.pipe2b =p2bV.map(v=>v*subAlloc*subFee);
+  const balmainMonthly = MONTHS.map((_,i)=>i<sBa?0:balmainVol*bScale*t3Scale(sBa,i)*rampAct(sBa,balmainRamp,i));
+  const alceonMonthly  = MONTHS.map((_,i)=>i<sAl?0:alceonVol*t3Scale(sAl,i)*rampAct(sAl,alceonRamp,i));
+  const lsPipeMonthly  = p2bV; // LogiSpace pipeline
+  const allPipV = MONTHS.map((_,i)=>pipV[i]+balmainMonthly[i]+alceonMonthly[i]+lsPipeMonthly[i]);
+
+  // 1. Subcontractor security fee (same as T1)
+  t3parts.subcon = allPipV.map(v=>v*subAlloc*subFee);
+
+  // 2. Platform fee on pipeline — only if investor toggles it on
+  t3parts.platform = allPipV.map(v=>platAll?v*platFee:0);
+
+  // 3. DUAL RETENTION YIELD — identical mechanics to Tier 1
+  //    Pool 1: funder → builder (on full claim value)
+  //    Pool 2: builder → subcontractor (on subcon portion)
+  let t3RetBalBuilder = 0;
+  let t3RetBalSubcon  = 0;
+  let t3CumVol = 0;
+  t3parts.retYield = MONTHS.map((_,i)=>{
+    const fullClaim   = allPipV[i];
+    const subconClaim = allPipV[i] * subAlloc;
+    t3CumVol += fullClaim;
+    const retCapAmt = t3CumVol * retCap;
+
+    const space1    = Math.max(0, retCapAmt - t3RetBalBuilder);
+    const withheld1 = Math.min(fullClaim * retWith, space1);
+    t3RetBalBuilder += withheld1;
+
+    const space2    = Math.max(0, retCapAmt * subAlloc - t3RetBalSubcon);
+    const withheld2 = Math.min(subconClaim * retWith, space2);
+    t3RetBalSubcon  += withheld2;
+
+    return (t3RetBalBuilder + t3RetBalSubcon) * retYieldR / 12;
+  });
+
+  // 4. TRANSITORY FUNDS YIELD — funds sit in system avg tranDays before leaving
+  t3parts.tranYield = allPipV.map(v=>v*(tranDays/365)*tranYieldR);
+
+  // 5. EARLY RELEASE FEES — same ramp profile as T1 (feature rolling out)
+  t3parts.earlyRel = MONTHS.map((_,i)=>allPipV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
+
+  // 6. AMAL — yield spread on float (different mechanic — not a construction funder)
+  t3parts.amal = MONTHS.map((_,i)=>i<sAm?0:9e9*amalPct*amalSpread/12*t3Scale(sAm,i));
+
   const tier3=MONTHS.map((_,i)=>Object.values(t3parts).reduce((s,a)=>s+a[i],0)*d3);
 
   const totalRev=MONTHS.map((_,i)=>tier1[i]+tier2[i]+tier3[i]);
@@ -930,16 +1151,38 @@ function buildRevenue(){
   const ohdBase=[69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
   const ohd=ohdBase.map(v=>v*ohdMult);
 
-  const cosB=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  // Cost of sales — base from Excel P&L plus MBANSW rev share (60% of $100/contract)
+  const cosBbase=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  const mbanswCoS = mbanswContractsMonthly.map(n => n * 60); // $60/contract CoS
+  const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
   const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
-  // Equity raises — O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
-  const OROURKE = 1000000;
-  const HIRST   = 100000;
-  const equityIn = MONTHS.map((_,i) => i===0 ? OROURKE + HIRST : 0);
+  // Equity raises
+  const OROURKE   = 1000000;
+  const HIRST     = 100000;
+  const BALMAIN_INV = gv('balmainInv') * 1e6;
+  // O'Rourke + Hirst in Apr-26 (month 0), Balmain in Jul-26 (month 3), RE raise in months 15+16
+  const equityIn = MONTHS.map((_,i) => {
+    if(i===0)  return OROURKE + HIRST;
+    if(i===3)  return BALMAIN_INV;
+    if(i===6||i===7) return reR/2;
+    return 0;
+  });
 
-  const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i]);
+  // R&D Grant — $600K other income in Sep-26 (month 5), shows in revenue
+  const rdGrant = MONTHS.map((_,i) => i===5 ? 600000 : 0);
+
+  // Loan repayments and other cash movements
+  const loanRepayments = MONTHS.map((_,i) => {
+    let out = 0;
+    if(i===3)  out += 60000;   // Convertible note + interest — Jul-26
+    if(i===5)  out += 600000;  // AMAL loan repayment — Sep-26 (offsets grant)
+    if(i===16) out += 420000;  // Secured loan + interest — Aug-27
+    return out;
+  });
+
+  const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i] + rdGrant[i] - loanRepayments[i]);
   const cash=[];let bal=388189;
   for(let i=0;i<N;i++){bal+=cashFlow[i];cash.push(bal);}
 
@@ -959,13 +1202,13 @@ function buildRevenue(){
     {name:'Plenary #1',tier:3,arr:p1V.map(v=>v*subAlloc*subFee*d3)},
     {name:'Plenary #2',tier:3,arr:p2V.map(v=>v*subAlloc*subFee*d3)},
     {name:'Plenary #3',tier:3,arr:p3V.map(v=>v*subAlloc*subFee*d3)},
-    {name:'Balmain',tier:3,arr:t3parts.balmain.map(v=>v*d3)},
-    {name:'Alceon',tier:3,arr:t3parts.alceon.map(v=>v*d3)},
+    {name:'Balmain',tier:3,arr:balmainMonthly.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Alceon',tier:3,arr:alceonMonthly.map(v=>v*subAlloc*subFee*d3)},
     {name:'AMAL',tier:3,arr:t3parts.amal.map(v=>v*d3)},
-    {name:'$2B Pipeline',tier:3,arr:t3parts.pipe2b.map(v=>v*d3)},
+    {name:'LogiSpace Pipeline ($2B)',tier:3,arr:lsPipeMonthly.map(v=>v*subAlloc*subFee*d3)},
   ];
 
-  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn};
+  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn,rdGrant,loanRepayments};
 }
 
 function fmt(v){
@@ -1010,35 +1253,97 @@ function drawCharts(d){
     {label:'T3 Pipeline',  data:foreT3,     backgroundColor:'rgba(245,158,11,.8)',  stack:'s'},
   ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
 
-  // Mark equity raise months with larger points on cash line
-  // Apr-26 = index NA (9th actual + 0th forecast = index 9 in allLabels)
-  const cashPointRadius = actCashPadded.map((_,i) => {
-    const foreIdx = i - NA; // index in forecast array
-    if(foreIdx === 0) return 8;  // Apr-26: O'Rourke + Hirst
-    if(foreIdx === 15 || foreIdx === 16) return 6; // RE raise
-    return 3;
-  });
-  const cashPointColor = actCashPadded.map((_,i) => {
-    const foreIdx = i - NA;
-    if(foreIdx === 0) return '#34d399';
-    if(foreIdx === 15 || foreIdx === 16) return '#a78bfa';
-    return '#60a5fa';
+  // Capital events data (shared between cash chart and capital chart)
+  const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
+  const balmainInvAmt = parseFloat(document.getElementById('balmainInv').value)*1e6;
+  const apr26equity = 1000000 + 100000;
+  const jul26equity = balmainInvAmt;
+
+  // ── CLEAN CASH CHART ─────────────────────────────────────────────────────
+  if(cCash)cCash.destroy();
+  cCash=new Chart(document.getElementById('chartCash'),{
+    type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Cash Balance',data:actCashPadded,borderColor:'#60a5fa',
+       backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
+      {label:'EBITDA',data:actEbitda,borderColor:'rgba(16,185,129,.55)',
+       borderDash:[4,3],tension:.3,pointRadius:2,fill:false},
+    ]},
+    options:{...co}
   });
 
-  if(cCash)cCash.destroy();
-  cCash=new Chart(document.getElementById('chartCash'),{type:'line',data:{labels:allLabels,datasets:[
-    {label:'Cash Balance',data:actCashPadded,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.07)',
-     fill:true,tension:.3,pointRadius:cashPointRadius,pointBackgroundColor:cashPointColor,
-     pointBorderColor:cashPointColor},
-    {label:'EBITDA',data:actEbitda,borderColor:'rgba(16,185,129,.55)',borderDash:[4,3],tension:.3,pointRadius:2,fill:false},
-    // Invisible dataset just for legend labels on equity events
-    {label:'● O\'Rourke+Hirst $1.1M (Apr-26)',data:Array(allLabels.length).fill(null),
-     borderColor:'#34d399',backgroundColor:'#34d399',pointRadius:0,borderWidth:0},
-    {label:'● RE Raise (Jul-Aug 27)',data:Array(allLabels.length).fill(null),
-     borderColor:'#a78bfa',backgroundColor:'#a78bfa',pointRadius:0,borderWidth:0},
-  ]},options:{...co,plugins:{...co.plugins,legend:{labels:{...co.plugins.legend.labels,
-    filter:(item)=>true
-  }}}}});
+  // ── CAPITAL EVENTS CHART ─────────────────────────────────────────────────
+  const capLabels = allLabels;
+
+  const equityData = capLabels.map((_,i)=>{
+    const fi=i-NA;
+    if(fi===0)  return apr26equity;
+    if(fi===3)  return jul26equity;
+    if(fi===6||fi===7) return reRaiseTotal/2;
+    return null;
+  });
+  const grantData = capLabels.map((_,i)=> i-NA===5 ? 600000 : null);
+  // Repayments positive (red bars above axis)
+  const repayData = capLabels.map((_,i)=>{
+    const fi=i-NA;
+    if(fi===3)  return 60000;
+    if(fi===5)  return 600000;
+    if(fi===16) return 420000;
+    return null;
+  });
+
+  const valueLabelPlugin = {
+    id:'valueLabel',
+    afterDatasetsDraw(chart){
+      const ctx=chart.ctx;
+      chart.data.datasets.forEach((ds,di)=>{
+        const meta=chart.getDatasetMeta(di);
+        meta.data.forEach((bar,i)=>{
+          const v=ds.data[i];
+          if(v===null||v===undefined||v===0) return;
+          const a=Math.abs(v);
+          const lbl='$'+(a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a);
+          ctx.save();
+          ctx.fillStyle='#e8edf5';
+          ctx.font='bold 11px DM Mono, monospace';
+          ctx.textAlign='center';
+          ctx.textBaseline='bottom';
+          ctx.fillText(lbl, bar.x, bar.y-4);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  if(window.cCapIn) window.cCapIn.destroy();
+  window.cCapIn=new Chart(document.getElementById('chartCapitalIn'),{
+    type:'bar',
+    data:{labels:capLabels,datasets:[
+      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4},
+      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4},
+      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4},
+    ]},
+    options:{
+      responsive:true, maintainAspectRatio:true,
+      plugins:{
+        legend:{labels:{color:'#8b96b0',font:{size:10,family:'DM Mono'},boxWidth:9,padding:6}},
+        tooltip:{callbacks:{label:(ctx)=>{
+          const v=ctx.parsed.y; if(!v) return null;
+          const a=Math.abs(v);
+          return ctx.dataset.label+': $'+(a>=1e6?(a/1e6).toFixed(2)+'M':(a/1e3).toFixed(0)+'K');
+        }}},
+      },
+      scales:{
+        x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
+        y:{min:0,ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
+            callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
+          grid:{color:'#1e2840'}},
+      }
+    },
+    plugins:[valueLabelPlugin]
+  });
+
+  if(window.cCapOut) window.cCapOut.destroy();
 }
 
 function buildSummary(d){
@@ -1169,6 +1474,10 @@ function updateModel(){
   document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
   document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
   document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  const mbaFinAdoptEl=document.getElementById('a_mbaFinAdopt');
+  if(mbaFinAdoptEl) document.getElementById('mbaFinAdoptV').textContent=mbaFinAdoptEl.value+'%';
+  const mbaFinTargetEl=document.getElementById('a_mbaFinTarget');
+  if(mbaFinTargetEl) document.getElementById('mbaFinTargetV').textContent=mbaFinTargetEl.value+'%';
   const mbanswFinEl=document.getElementById('a_mbanswFinAdopt');
   if(mbanswFinEl) document.getElementById('mbanswFinV').textContent=mbanswFinEl.value+'%';
   document.getElementById('yieldV').textContent=document.getElementById('yieldRate').value+'%';
@@ -1194,6 +1503,8 @@ function updateModel(){
     {n:'Tier 2',         a:d.tier2,    act:PL_ACTUALS.tier2},
     {n:'Tier 3',         a:d.tier3,    act:PL_ACTUALS.tier3},
     {ttl:'Total Revenue',a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {sec:'Other Income'},
+    {n:'R&D Grant',      a:d.rdGrant,  act:Array(NA).fill(0)},
     {sec:'Costs'},
     {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
     {n:'Opex & Wages',   a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
@@ -1201,12 +1512,14 @@ function updateModel(){
     {net:'EBITDA',       a:d.ebitda,   act:PL_ACTUALS.ebitda},
   ]);
   buildMonthly('tblCash',[
-    {n:'Revenue',        a:d.totalRev, act:PL_ACTUALS.totalRev},
-    {n:'Equity Raised',  a:d.equityIn, act:Array(NA).fill(0)},
-    {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
-    {n:'Expenses',       a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
-    {net:'Net Cashflow', a:d.cashFlow, act:PL_ACTUALS.cashFlow},
-    {net:'Cash Balance', a:d.cash,     act:PL_ACTUALS.cash},
+    {n:'Revenue',           a:d.totalRev,       act:PL_ACTUALS.totalRev},
+    {n:'R&D Grant',         a:d.rdGrant,        act:Array(NA).fill(0)},
+    {n:'Equity Raised',     a:d.equityIn,       act:Array(NA).fill(0)},
+    {n:'Cost of Sales',     a:d.cosB,           act:PL_ACTUALS.cosB,      neg:true},
+    {n:'Expenses',          a:d.exp,            act:PL_ACTUALS.exp,       neg:true},
+    {n:'Loan Repayments',   a:d.loanRepayments, act:Array(NA).fill(0),    neg:true},
+    {net:'Net Cashflow',    a:d.cashFlow,       act:PL_ACTUALS.cashFlow},
+    {net:'Cash Balance',    a:d.cash,           act:PL_ACTUALS.cash},
   ]);
   buildTiming(d);
   buildBS(d);
@@ -1279,9 +1592,12 @@ function buildBS(d){
     const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
     interEntity = Math.min(0, interEntity + reduction);
 
-    // Share capital: O'Rourke + Hirst in month 0 (Apr-26), RE raise in months 15+16
+    // O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
     if(i===0) shareCapital -= (1000000 + 100000);
-    if(i===15||i===16) shareCapital -= reRaiseTotal/2;
+    // Balmain investment in Jul-26 (month 3)
+    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
+    // RE raise in months 15+16
+    if(i===6||i===7) shareCapital -= reRaiseTotal/2;
 
     // Sundry creditors decline (from model)
     const sundryCreditors = i<12 ? OB.sundryCreditors*(1-i/12) : 0;
@@ -1416,6 +1732,40 @@ function populateDropdowns(){
     el.innerHTML = MONTHS.map((m,i)=>
       `<option value="${i}"${i===defaultVal?' selected':''}>${m}</option>`
     ).join('');
+  });
+}
+
+function printReports(){
+  // Set print date
+  const d = new Date();
+  const el = document.getElementById('printDate');
+  if(el) el.textContent = d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
+
+  // Auto-scale each table to fit A4 landscape width (~260mm = ~980px at 96dpi)
+  // We measure the table's natural width and scale it down to fit
+  const printWidth = 980;
+  const tables = document.querySelectorAll('.tbl-wrap table');
+  const origStyles = [];
+  tables.forEach(t => {
+    origStyles.push(t.style.cssText);
+    const naturalWidth = t.scrollWidth;
+    if(naturalWidth > printWidth){
+      const scale = printWidth / naturalWidth;
+      t.style.transform = `scale(${scale})`;
+      t.style.transformOrigin = 'top left';
+      t.style.width = (naturalWidth) + 'px';
+      // Compensate container height so content doesn't overlap
+      t.closest('.tbl-wrap').style.height = Math.ceil(t.scrollHeight * scale) + 'px';
+    }
+  });
+
+  window.print();
+
+  // Restore original styles after print dialog closes
+  tables.forEach((t,i) => {
+    t.style.cssText = origStyles[i];
+    const wrap = t.closest('.tbl-wrap');
+    if(wrap) wrap.style.height = '';
   });
 }
 
