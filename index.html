@@ -279,7 +279,7 @@ tr.net td:first-child{color:var(--t1);}
   <div class="sl-group" style="margin-top:4px">
     <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
     <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
-    <div class="hint">Also a lending customer — separate lines</div>
+    <div class="hint">Equity in Apr-26 — shown on cash chart. Also a lending customer (Tier 3).</div>
   </div>
   <div class="sl-group">
     <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$1.5M</span></div>
@@ -934,10 +934,12 @@ function buildRevenue(){
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
   const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
-  // Equity raises — O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
-  const OROURKE = 1000000;
-  const HIRST   = 100000;
-  const equityIn = MONTHS.map((_,i) => i===0 ? OROURKE + HIRST : 0);
+  // Equity raises
+  const OROURKE   = 1000000;
+  const HIRST     = 100000;
+  const BALMAIN_INV = gv('balmainInv') * 1e6; // up to $5M, slider controlled
+  // All three arrive in Apr-26 (month 0)
+  const equityIn = MONTHS.map((_,i) => i===0 ? OROURKE + HIRST + BALMAIN_INV : 0);
 
   const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i]);
   const cash=[];let bal=388189;
@@ -1012,9 +1014,11 @@ function drawCharts(d){
 
   // Equity raise bars — all raises across the full timeline
   const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
+  const balmainInvAmt = parseFloat(document.getElementById('balmainInv').value)*1e6;
+  const apr26equity = 1000000 + 100000 + balmainInvAmt; // O'Rourke + Hirst + Balmain
   const equityBars = allLabels.map((_,i)=>{
     const fi = i - NA; // forecast index
-    if(fi === 0) return 1100000;           // O'Rourke $1M + Hirst $100K
+    if(fi === 0) return apr26equity;                  // Apr-26: all three investors
     if(fi === 15 || fi === 16) return reRaiseTotal/2; // RE raise split over 2 months
     return null;
   });
@@ -1335,8 +1339,8 @@ function buildBS(d){
     const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
     interEntity = Math.min(0, interEntity + reduction);
 
-    // Share capital: O'Rourke + Hirst in month 0 (Apr-26), RE raise in months 15+16
-    if(i===0) shareCapital -= (1000000 + 100000);
+    // Share capital: O'Rourke $1M + Hirst $100K + Balmain in Apr-26 (month 0), RE raise in months 15+16
+    if(i===0) shareCapital -= (1000000 + 100000 + parseFloat(document.getElementById('balmainInv').value)*1e6);
     if(i===15||i===16) shareCapital -= reRaiseTotal/2;
 
     // Sundry creditors decline (from model)
