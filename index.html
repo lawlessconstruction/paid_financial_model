@@ -732,9 +732,13 @@ function buildRevenue(){
   function act(s,i){return i>=s?1:0;}
 
   // ── RAMP PROFILES ─────────────────────────────────────────────────────────
-  // Tier 1: already live, gradual volume build over 4 quarters
-  // Apr-26 opens at ~50% (already onboarding), reaches 100% by month 9 (Jan-27)
-  const T1_RAMP = [0.50, 0.60, 0.70, 0.80, 0.85, 0.90, 0.95, 0.98, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+  // Tier 1: soft ramp starting at 20% in Apr-26 (matching actual volume level)
+  // builds steadily to 100% by Jan-27 as more projects onboard each quarter
+  const T1_RAMP = [0.20,0.28,0.38,0.50,0.60,0.70,0.80,0.88,0.94,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
+
+  // Early release fee adoption ramps separately — feature only just going live
+  // Starts at 0%, builds to full adoption assumption over ~9 months
+  const ER_RAMP = [0.00,0.02,0.05,0.08,0.12,0.15,0.20,0.25,0.28,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30];
   function qtrT1(v,s,i){
     if(i<s) return 0;
     return v/3 * T1_RAMP[Math.min(i-s, T1_RAMP.length-1)];
@@ -810,7 +814,8 @@ function buildRevenue(){
   });
 
   t1parts.tranYield = contractedV.map(v=>v*(tranDays/365)*tranYieldR);
-  t1parts.earlyRel  = contractedV.map(v=>v*erAdopt*erDays*erRate);
+  // Early release ramps from 0% as feature comes online — reaches full erAdopt by month 9
+  t1parts.earlyRel  = MONTHS.map((_,i)=>contractedV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
 
   // MBA/ABIC (Tier 1 — already live)
   // ~2,000 contracts/yr pool. Currently ~400 contracts (20%), still ramping.
