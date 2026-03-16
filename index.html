@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paid — Investor Financial Model</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0a0d12; --surface:#111520; --surface2:#161c2a; --border:#1e2840;
+  --accent:#2563eb; --accent2:#10b981; --accent3:#f59e0b; --accent4:#ef4444;
+  --text:#e8edf5; --text2:#8b96b0; --text3:#4a5470;
+  --t1:#10b981; --t2:#3b82f6; --t3:#f59e0b;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Instrument Sans',sans-serif;min-height:100vh;font-size:13px;}
+
+header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#0d1220,#0a0d12);}
+.logo-mark{font-family:'DM Serif Display',serif;font-size:26px;background:linear-gradient(135deg,#60a5fa,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.logo-sub{font-size:11px;color:var(--text2);letter-spacing:2px;text-transform:uppercase;margin-left:12px;}
+
+.main{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 68px);}
+
+aside{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:0;height:calc(100vh - 68px);}
+.sb-section{padding:16px 18px;border-bottom:1px solid var(--border);}
+.sb-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+
+.tier-block{margin-bottom:8px;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.tier-head{display:flex;align-items:center;gap:7px;padding:9px 11px;cursor:pointer;background:var(--surface2);}
+.tier-head:hover{background:rgba(255,255,255,0.03);}
+.tdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tname{font-size:11px;font-weight:600;flex:1;}
+.tbadge{font-size:9px;padding:2px 6px;border-radius:3px;font-family:'DM Mono',monospace;white-space:nowrap;}
+.toggle{width:32px;height:17px;border-radius:9px;position:relative;flex-shrink:0;transition:background .2s;cursor:pointer;}
+.toggle::after{content:'';position:absolute;width:11px;height:11px;border-radius:50%;background:white;top:3px;left:3px;transition:transform .2s;}
+.toggle.on{background:var(--accent2);}
+.toggle.off{background:var(--text3);}
+.toggle.on::after{transform:translateX(15px);}
+.tier-body{padding:4px 11px 10px;display:none;background:rgba(255,255,255,0.01);}
+.tier-body.open{display:block;}
+.tier-note{font-size:10px;color:var(--text3);line-height:1.5;margin-bottom:6px;padding-top:6px;}
+
+.proj-list{margin-top:4px;}
+.proj-row{display:flex;align-items:center;padding:4px 0;border-bottom:1px solid rgba(255,255,255,0.04);}
+.proj-row:last-child{border-bottom:none;}
+.proj-name{font-size:11px;color:var(--text2);flex:1;}
+.proj-vol{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;margin:0 6px;white-space:nowrap;}
+select.proj-start{background:var(--surface);border:1px solid var(--border);color:var(--text);font-size:10px;font-family:'DM Mono',monospace;padding:3px 5px;border-radius:3px;outline:none;cursor:pointer;min-width:68px;}
+select.proj-start:focus{border-color:var(--accent);}
+
+.sl-group{margin-bottom:10px;}
+.sl-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+.sl-label{font-size:11px;color:var(--text2);}
+.sl-val{font-family:'DM Mono',monospace;font-size:11px;min-width:36px;text-align:right;}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:var(--border);border-radius:2px;outline:none;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 0 3px rgba(37,99,235,.2);}
+.hint{font-size:9px;color:var(--text3);margin-top:2px;}
+
+.content{padding:26px 34px;overflow-y:auto;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px;}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:16px 18px;position:relative;overflow:hidden;}
+.kpi-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi-card.green::before{background:var(--t1);}
+.kpi-card.blue::before{background:var(--t2);}
+.kpi-card.amber::before{background:var(--t3);}
+.kpi-card.red::before{background:var(--accent4);}
+.kpi-label{font-size:10px;color:var(--text2);letter-spacing:.5px;margin-bottom:5px;text-transform:uppercase;}
+.kpi-value{font-family:'DM Serif Display',serif;font-size:22px;line-height:1;margin-bottom:3px;}
+.kpi-sub{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+.spills{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:20px;}
+.spill{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;background:var(--surface);border:1px solid var(--border);font-size:10px;}
+.spill .dot{width:6px;height:6px;border-radius:50%;}
+.spill .pct{font-family:'DM Mono',monospace;font-size:9px;color:var(--text2);background:var(--surface2);padding:1px 5px;border-radius:3px;}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:18px;}
+.chart-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:12px;}
+
+.view-tabs{display:flex;gap:7px;margin-bottom:18px;}
+.tab{padding:6px 15px;border-radius:5px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surface);color:var(--text2);transition:all .2s;}
+.tab.active{background:var(--accent);border-color:var(--accent);color:white;}
+.tab:hover:not(.active){background:var(--surface2);color:var(--text);}
+
+.tbl-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;overflow:hidden;margin-bottom:22px;}
+.tbl-hdr{padding:12px 18px;border-bottom:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;justify-content:space-between;}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--text3);padding:7px 11px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
+th:first-child{text-align:left;min-width:175px;position:sticky;left:0;background:var(--surface);z-index:2;}
+td{padding:6px 11px;font-family:'DM Mono',monospace;font-size:10px;text-align:right;border-bottom:1px solid #0d1220;color:var(--text);}
+td:first-child{text-align:left;color:var(--text2);font-family:'Instrument Sans',sans-serif;font-size:10px;position:sticky;left:0;background:var(--surface);z-index:1;}
+tr:hover td{background:rgba(255,255,255,.02);}
+tr.sec td{color:var(--text3);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding-top:12px;font-family:'DM Mono',monospace;}
+tr.sec td:first-child{color:var(--text3);}
+tr.ttl td{color:var(--text);font-weight:600;border-top:1px solid var(--border);}
+tr.net td{color:var(--t1);font-weight:700;border-top:2px solid var(--t1);background:rgba(16,185,129,.04);}
+tr.net td:first-child{color:var(--t1);}
+.neg{color:#f87171!important;}
+.pos{color:var(--t1)!important;}
+
+/* ASSUMPTIONS TAB */
+.ass-group{margin-bottom:26px;}
+.ass-group-title{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.ass-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.ass-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:16px 18px;}
+.ass-card-label{font-size:12px;font-weight:600;color:var(--text);margin-bottom:8px;}
+.ass-mechanic{font-size:11px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.ass-formula{font-family:'DM Mono',monospace;font-size:10px;color:var(--t2);background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.15);border-radius:4px;padding:6px 9px;margin-bottom:10px;line-height:1.5;}
+.ass-controls{}
+.ass-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;font-size:11px;color:var(--text2);}
+.ass-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--text);min-width:50px;text-align:right;}
+.ass-toggle-wrap{display:flex;align-items:center;gap:5px;cursor:pointer;}
+.ass-ck-label{font-size:10px;font-family:'DM Mono',monospace;padding:2px 7px;border-radius:3px;background:var(--surface2);color:var(--text2);}
+/* Headcount person cards */
+.hc-person{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:10px 12px;display:flex;align-items:center;gap:8px;}
+.hc-name{font-size:11px;font-weight:600;color:var(--text);flex:1;}
+.hc-role{font-size:9px;color:var(--text3);font-family:'DM Mono',monospace;}
+.hc-salary{font-size:10px;color:var(--text2);font-family:'DM Mono',monospace;margin-right:6px;}
+.hc-tog{width:28px;height:15px;border-radius:8px;position:relative;flex-shrink:0;transition:background .2s;cursor:pointer;}
+.hc-tog::after{content:'';position:absolute;width:9px;height:9px;border-radius:50%;background:white;top:3px;left:3px;transition:transform .2s;}
+.hc-tog.on{background:var(--t1);}
+.hc-tog.off{background:var(--text3);}
+.hc-tog.on::after{transform:translateX(13px);}
+.hint{font-size:9px;color:var(--text3);}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:baseline">
+    <span class="logo-mark">Paid</span>
+    <span class="logo-sub">Investor Financial Model</span>
+  </div>
+  <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+</header>
+
+<div class="main">
+<aside>
+
+<div class="sb-section">
+<div class="sb-label">Revenue Tiers — Toggle &amp; Start Dates</div>
+
+<!-- TIER 1 -->
+<div class="tier-block">
+  <div class="tier-head" onclick="togglePanel(1)">
+    <span class="tdot" style="background:var(--t1)"></span>
+    <span class="tname">Tier 1 — Contracted</span>
+    <span class="tbadge" style="background:rgba(16,185,129,.15);color:var(--t1)">Certain</span>
+    <div class="toggle on" id="tog1" onclick="event.stopPropagation();toggleTier(1)"></div>
+  </div>
+  <div class="tier-body open" id="tbody1">
+    <div class="tier-note">Already generating actual revenue. Platform fee 0.2%, subcon fee 0.3%×80%, yield on funds, MBA/ABIC contract fees.</div>
+    <div class="proj-list">
+      <div class="proj-row"><span class="proj-name">Trilogy</span><span class="proj-vol">$50M/qtr</span>
+        <select class="proj-start" id="s_trilogy" onchange="updateModel()">
+          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="2">Jun-26</option>
+          <option value="3">Jul-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Remara</span><span class="proj-vol">$50M/qtr</span>
+        <select class="proj-start" id="s_remara" onchange="updateModel()">
+          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="2">Jun-26</option>
+          <option value="3">Jul-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">MBA / ABIC fees</span><span class="proj-vol">Volume ramp</span>
+        <select class="proj-start" id="s_mba" onchange="updateModel()">
+          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="3">Jul-26</option><option value="6">Oct-26</option>
+        </select></div>
+    </div>
+    <div class="sl-group" style="margin-top:9px">
+      <div class="sl-row"><span class="sl-label">MBA adoption rate</span><span class="sl-val" id="mbaAdoptV">2%</span></div>
+      <input type="range" id="mbaAdopt" min="1" max="8" value="2" step="1" oninput="updateModel()">
+      <div class="hint">25,000 contracts/yr — ramps to 5%</div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d1v">100%</span></div>
+      <input type="range" id="d1" min="50" max="100" value="100" step="5" oninput="updateModel()">
+    </div>
+  </div>
+</div>
+
+<!-- TIER 2 -->
+<div class="tier-block">
+  <div class="tier-head" onclick="togglePanel(2)">
+    <span class="tdot" style="background:var(--t2)"></span>
+    <span class="tname">Tier 2 — Alliance &amp; RE (contracted)</span>
+    <span class="tbadge" style="background:rgba(59,130,246,.15);color:var(--t2)">Largely Certain</span>
+    <div class="toggle on" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
+  </div>
+  <div class="tier-body open" id="tbody2">
+    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW licensing starts Jul-26. Paid.RE agencies under contract.</div>
+    <div class="proj-list">
+      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">$300K/yr</span>
+        <select class="proj-start" id="s_mbansw" onchange="updateModel()">
+          <option value="3" selected>Jul-26</option><option value="4">Aug-26</option><option value="5">Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">$400K/yr</span>
+        <select class="proj-start" id="s_jc" onchange="updateModel()">
+          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
+          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Paid.RE — Marshall White</span><span class="proj-vol">$167K/yr</span>
+        <select class="proj-start" id="s_mw" onchange="updateModel()">
+          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
+          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Paid.RE — REIV</span><span class="proj-vol">$193K/yr</span>
+        <select class="proj-start" id="s_reiv" onchange="updateModel()">
+          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
+          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
+        </select></div>
+    </div>
+    <div class="sl-group" style="margin-top:9px">
+      <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d2v">90%</span></div>
+      <input type="range" id="d2" min="20" max="100" value="90" step="5" oninput="updateModel()">
+    </div>
+  </div>
+</div>
+
+<!-- TIER 3 -->
+<div class="tier-block">
+  <div class="tier-head" onclick="togglePanel(3)">
+    <span class="tdot" style="background:var(--t3)"></span>
+    <span class="tname">Tier 3 — Named Pipeline</span>
+    <span class="tbadge" style="background:rgba(245,158,11,.15);color:var(--t3)">Expected</span>
+    <div class="toggle on" id="tog3" onclick="event.stopPropagation();toggleTier(3)"></div>
+  </div>
+  <div class="tier-body open" id="tbody3">
+    <div class="tier-note">Named projects &amp; signed-not-yet-onboarded. Push start dates right to stress-test timing risk.</div>
+    <div class="proj-list">
+      <div class="proj-row"><span class="proj-name">Avari</span><span class="proj-vol">$30M · 10mo</span>
+        <select class="proj-start" id="s_avari" onchange="updateModel()">
+          <option value="2">Jun-26</option><option value="3" selected>Jul-26</option><option value="4">Aug-26</option>
+          <option value="5">Sep-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Moda</span><span class="proj-vol">$100M · 10mo</span>
+        <select class="proj-start" id="s_moda" onchange="updateModel()">
+          <option value="3">Jul-26</option><option value="4">Aug-26</option><option value="5">Sep-26</option>
+          <option value="6" selected>Oct-26</option><option value="7">Nov-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Radius</span><span class="proj-vol">$25M/qtr</span>
+        <select class="proj-start" id="s_radius" onchange="updateModel()">
+          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Portside</span><span class="proj-vol">$20M/qtr</span>
+        <select class="proj-start" id="s_portside" onchange="updateModel()">
+          <option value="3">Jul-26</option><option value="4">Aug-26</option><option value="5" selected>Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">LogiSpace</span><span class="proj-vol">$150M · 10mo</span>
+        <select class="proj-start" id="s_logispace" onchange="updateModel()">
+          <option value="4">Aug-26</option><option value="5">Sep-26</option><option value="6" selected>Oct-26</option>
+          <option value="7">Nov-26</option><option value="8">Dec-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Plenary #1</span><span class="proj-vol">$150M · 10mo</span>
+        <select class="proj-start" id="s_plenary1" onchange="updateModel()">
+          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Plenary #2</span><span class="proj-vol">$150M · 10mo</span>
+        <select class="proj-start" id="s_plenary2" onchange="updateModel()">
+          <option value="7" selected>Nov-26</option><option value="8">Dec-26</option><option value="9">Jan-27</option>
+          <option value="10">Feb-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Plenary #3</span><span class="proj-vol">$150M · 10mo</span>
+        <select class="proj-start" id="s_plenary3" onchange="updateModel()">
+          <option value="11">Mar-27</option><option value="12" selected>Apr-27</option>
+          <option value="13">May-27</option><option value="15">Jul-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Balmain</span><span class="proj-vol">$200M/mo lend</span>
+        <select class="proj-start" id="s_balmain" onchange="updateModel()">
+          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">Alceon</span><span class="proj-vol">$200M/mo lend</span>
+        <select class="proj-start" id="s_alceon" onchange="updateModel()">
+          <option value="4">Aug-26</option><option value="5" selected>Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">AMAL ($9B float)</span><span class="proj-vol">0.2% spread</span>
+        <select class="proj-start" id="s_amal" onchange="updateModel()">
+          <option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
+          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
+        </select></div>
+      <div class="proj-row"><span class="proj-name">$2B pipeline</span><span class="proj-vol">Over 12 months</span>
+        <select class="proj-start" id="s_pipe2b" onchange="updateModel()">
+          <option value="9" selected>Jan-27</option><option value="10">Feb-27</option>
+          <option value="12">Apr-27</option><option value="15">Jul-27</option>
+        </select></div>
+    </div>
+    <div class="sl-group" style="margin-top:9px">
+      <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d3v">75%</span></div>
+      <input type="range" id="d3" min="0" max="100" value="75" step="5" oninput="updateModel()">
+    </div>
+  </div>
+</div>
+</div><!-- end tiers section -->
+
+<!-- ASSUMPTIONS -->
+<div class="sb-section">
+  <div class="sb-label">Financial Assumptions</div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label">Yield rate (p.a.)</span><span class="sl-val" id="yieldV">4%</span></div>
+    <input type="range" id="yieldRate" min="2" max="8" value="4" step="0.5" oninput="updateModel()">
+  </div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label">Early release adoption</span><span class="sl-val" id="erV">30%</span></div>
+    <input type="range" id="erAdopt" min="0" max="60" value="30" step="5" oninput="updateModel()">
+    <div class="hint">0.07%/day · avg 30 days early</div>
+  </div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label">Wage growth (p.a.)</span><span class="sl-val" id="wageV">4%</span></div>
+    <input type="range" id="wageGrowth" min="0" max="12" value="4" step="1" oninput="updateModel()">
+  </div>
+</div>
+
+<!-- CAPITAL -->
+<div class="sb-section">
+  <div class="sb-label">Capital Events</div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
+    <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
+    <div class="hint">Also a lending customer — separate lines</div>
+  </div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$1.5M</span></div>
+    <input type="range" id="reRaise" min="0" max="2" value="1.5" step="0.25" oninput="updateModel()">
+    <div class="hint">REIV $750K + other investors</div>
+  </div>
+</div>
+
+</aside>
+
+<!-- CONTENT -->
+<div class="content">
+
+  <div class="spills" id="spills">
+    <div class="spill"><span class="dot" style="background:var(--t1)"></span>Tier 1 <span class="pct" id="sp1">ON · 100%</span></div>
+    <div class="spill"><span class="dot" style="background:var(--t2)"></span>Tier 2 <span class="pct" id="sp2">ON · 90%</span></div>
+    <div class="spill"><span class="dot" style="background:var(--t3)"></span>Tier 3 <span class="pct" id="sp3">ON · 75%</span></div>
+  </div>
+
+  <div class="view-tabs">
+    <div class="tab active" onclick="showView('summary')">Summary</div>
+    <div class="tab" onclick="showView('pl')">P&amp;L Monthly</div>
+    <div class="tab" onclick="showView('cashflow')">Cash Runway</div>
+    <div class="tab" onclick="showView('timing')">📅 Project Timing</div>
+    <div class="tab" onclick="showView('bs')">⚖️ Balance Sheet</div>
+    <div class="tab" onclick="showView('assumptions')">🔧 Assumptions</div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card green"><div class="kpi-label">FY2026 Rev (Q4)</div><div class="kpi-value" id="k1">—</div><div class="kpi-sub">Apr–Jun 2026</div></div>
+    <div class="kpi-card blue"><div class="kpi-label">FY2027 Revenue</div><div class="kpi-value" id="k2">—</div><div class="kpi-sub">Jul 2026–Jun 2027</div></div>
+    <div class="kpi-card amber"><div class="kpi-label">FY2028 Rev (H1)</div><div class="kpi-value" id="k3">—</div><div class="kpi-sub">Jul–Dec 2027</div></div>
+    <div class="kpi-card red"><div class="kpi-label">Min Cash Balance</div><div class="kpi-value" id="k4">—</div><div class="kpi-sub" id="k4s">Across forecast</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card"><div class="chart-title">Monthly Revenue by Tier</div><canvas id="chartRev" height="200"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Cash Position &amp; EBITDA</div><canvas id="chartCash" height="200"></canvas></div>
+  </div>
+
+  <div id="view-summary">
+    <div class="tbl-card">
+      <div class="tbl-hdr">Annual Revenue Summary <span style="font-size:9px;color:var(--text3)">Post-discount · $AUD</span></div>
+      <div class="tbl-wrap"><table id="tblSummary"></table></div>
+    </div>
+  </div>
+
+  <div id="view-pl" style="display:none">
+    <div class="tbl-card">
+      <div class="tbl-hdr">P&amp;L — Monthly Detail <span style="font-size:9px;color:var(--text3)">Scroll → for full 21-month period</span></div>
+      <div class="tbl-wrap"><table id="tblPL"></table></div>
+    </div>
+  </div>
+
+  <div id="view-cashflow" style="display:none">
+    <div class="tbl-card">
+      <div class="tbl-hdr">Cashflow Statement <span style="font-size:9px;color:var(--text3)">Opening Apr-26: $388K</span></div>
+      <div class="tbl-wrap"><table id="tblCash"></table></div>
+    </div>
+  </div>
+
+  <div id="view-timing" style="display:none">
+    <div class="tbl-card">
+      <div class="tbl-hdr">Project Revenue - When Each Source Activates <span style="font-size:9px;color:var(--text3)">-- = not yet started · green = contributing · post-discount</span></div>
+      <div class="tbl-wrap"><table id="tblTiming"></table></div>
+    </div>
+  </div>
+
+  <div id="view-bs" style="display:none">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px">
+      <div class="kpi-card green"><div class="kpi-label">Total Assets (Dec-27)</div><div class="kpi-value" id="bsAssets">--</div><div class="kpi-sub">Cash + IP + receivables</div></div>
+      <div class="kpi-card blue"><div class="kpi-label">Net Equity (Dec-27)</div><div class="kpi-value" id="bsEquity">--</div><div class="kpi-sub">Share capital + retained earnings</div></div>
+    </div>
+    <div class="tbl-card">
+      <div class="tbl-hdr">Balance Sheet -- Monthly Forecast <span style="font-size:9px;color:var(--text3)">Opening Apr-26 from actuals · rolls forward with P&amp;L</span></div>
+      <div class="tbl-wrap"><table id="tblBS"></table></div>
+    </div>
+    <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;padding:0 4px">
+      <strong style="color:var(--text2)">Notes:</strong>
+      IP &amp; Trademarks held at $1.94M (opening carrying value, no amortisation modelled).
+      Inter-entity loans reduce as the platform becomes self-funding.
+      GST, PAYG and Super liabilities estimated from expense base, settle quarterly.
+      Share capital reflects $6.83M issued ordinary shares. Retained earnings accumulate net income monthly.
+    </div>
+  </div>
+
+  <div id="view-assumptions" style="display:none">
+
+    <!-- GROUP 1: FEE RATES -->
+    <div class="ass-group">
+      <div class="ass-group-title">Fee Rates</div>
+      <div class="ass-grid">
+
+        <div class="ass-card">
+          <div class="ass-card-label">Platform Fee (Upfront)</div>
+          <div class="ass-mechanic">Charged as a one-off when a funder onboards a new project. Currently applied to Trilogy and Remara only — being discussed for broader rollout.</div>
+          <div class="ass-formula">Revenue = Contract Value × Platform Fee %</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Platform fee %</span><span class="ass-val" id="av_platFee">0.20%</span></div>
+            <input type="range" id="a_platFee" min="0.1" max="0.5" value="0.2" step="0.05" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Apply to pipeline projects too?</span>
+              <label class="ass-toggle-wrap"><input type="checkbox" id="a_platAll" onchange="updateModel()"> <span class="ass-ck-label" id="av_platAll">No</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Subcontractor Security Fee</div>
+          <div class="ass-mechanic">Charged on the portion of each progress claim destined for subcontractors. Not every dollar goes to subs — the assumption is 80% of the build price is subcontractor work.</div>
+          <div class="ass-formula">Revenue = Claim Value × Sub Allocation % × Subcon Fee %</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Subcon fee %</span><span class="ass-val" id="av_subFee">0.30%</span></div>
+            <input type="range" id="a_subFee" min="0.1" max="0.5" value="0.3" step="0.05" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Sub allocation % of claim</span><span class="ass-val" id="av_subAlloc">80%</span></div>
+            <input type="range" id="a_subAlloc" min="50" max="100" value="80" step="5" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Early Release Fee</div>
+          <div class="ass-mechanic">When a subcontractor requests funds before the contractual due date, Paid charges a daily fee. The model assumes 30% of users opt in and release an average of 30 days early.</div>
+          <div class="ass-formula">Revenue = Claim Value × Adoption % × Days Early × 0.07%/day</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>User adoption</span><span class="ass-val" id="av_erAdopt2">30%</span></div>
+            <input type="range" id="a_erAdopt" min="0" max="60" value="30" step="5" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Avg days early</span><span class="ass-val" id="av_erDays">30 days</span></div>
+            <input type="range" id="a_erDays" min="5" max="60" value="30" step="5" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Daily fee rate</span><span class="ass-val" id="av_erRate">0.07%</span></div>
+            <input type="range" id="a_erRate" min="0.03" max="0.15" value="0.07" step="0.01" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Retention Yield</div>
+          <div class="ass-mechanic">On every claim, Paid withholds 10% until the running retention balance reaches 5% of the total contract value — then withholding stops. The pooled retention earns yield while it sits in the system. Example: on a $50M contract, retention caps at $2.5M after $25M of claims.</div>
+          <div class="ass-formula">Withheld = 10% per claim until balance = Contract Value × Retention Cap %<br>Yield = Running Balance × Yield Rate ÷ 12</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Withholding rate per claim</span><span class="ass-val" id="av_retWith">10%</span></div>
+            <input type="range" id="a_retWith" min="5" max="15" value="10" step="1" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Retention cap (% of contract)</span><span class="ass-val" id="av_retCap">5%</span></div>
+            <input type="range" id="a_retCap" min="2" max="10" value="5" step="0.5" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Avg retention hold period</span><span class="ass-val" id="av_retHold">15 months</span></div>
+            <input type="range" id="a_retHold" min="12" max="24" value="15" step="1" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Yield rate (p.a.)</span><span class="ass-val" id="av_retYield">4%</span></div>
+            <input type="range" id="a_retYield" min="2" max="8" value="4" step="0.5" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Transitory Funds Yield</div>
+          <div class="ass-mechanic">Every payment flows through Paid's platform — money comes in from funders and waterfalls out to subcontractors. The current assumption is funds sit for 5 days on average before leaving the system. Longer payment terms would increase this materially.</div>
+          <div class="ass-formula">Yield = Total Platform Volume × (Days in System ÷ 365) × Yield Rate</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Avg days in system</span><span class="ass-val" id="av_tranDays">5 days</span></div>
+            <input type="range" id="a_tranDays" min="1" max="30" value="5" step="1" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Yield rate (p.a.)</span><span class="ass-val" id="av_tranYield">4%</span></div>
+            <input type="range" id="a_tranYield" min="2" max="8" value="4" step="0.5" oninput="updateModel()">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GROUP 2: PIPELINE RAMPS -->
+    <div class="ass-group">
+      <div class="ass-group-title">Pipeline Ramp Assumptions</div>
+      <div class="ass-grid">
+
+        <div class="ass-card">
+          <div class="ass-card-label">$2B Additional Pipeline</div>
+          <div class="ass-mechanic">$2B of additional projects expected to emerge over 12 months as industry awareness grows. Currently modelled as a flat monthly draw from the start date. A conservative ramp assumes slower uptake early on.</div>
+          <div class="ass-formula">Monthly Volume = $2B ÷ Ramp Period (months)</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Ramp period (months)</span><span class="ass-val" id="av_pipe2bRamp">12 months</span></div>
+            <input type="range" id="a_pipe2bRamp" min="6" max="24" value="12" step="3" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Total pipeline value</span><span class="ass-val" id="av_pipe2bVol">$2.0B</span></div>
+            <input type="range" id="a_pipe2bVol" min="0.5" max="4" value="2" step="0.25" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Balmain Lending Volume</div>
+          <div class="ass-mechanic">Balmain has indicated ~$350M lending per month. The model uses $200M/month as a conservative starting point with a ramp-up period before reaching full volume. Balmain is also a potential investor of up to $5M.</div>
+          <div class="ass-formula">Revenue = Monthly Lending Volume × Platform Fee %</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Monthly lending volume ($M)</span><span class="ass-val" id="av_balmainVol">$200M</span></div>
+            <input type="range" id="a_balmainVol" min="50" max="350" value="200" step="25" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Ramp-up months</span><span class="ass-val" id="av_balmainRamp">0 months</span></div>
+            <input type="range" id="a_balmainRamp" min="0" max="6" value="0" step="1" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Alceon Lending Volume</div>
+          <div class="ass-mechanic">Alceon has indicated ~$200M lending per month. Currently modelled at full volume from start date with no ramp. Adjust if you expect a slower onboarding process.</div>
+          <div class="ass-formula">Revenue = Monthly Lending Volume × Platform Fee %</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Monthly lending volume ($M)</span><span class="ass-val" id="av_alceonVol">$200M</span></div>
+            <input type="range" id="a_alceonVol" min="50" max="300" value="200" step="25" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Ramp-up months</span><span class="ass-val" id="av_alceonRamp">0 months</span></div>
+            <input type="range" id="a_alceonRamp" min="0" max="6" value="0" step="1" oninput="updateModel()">
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">AMAL — $9B Float</div>
+          <div class="ass-mechanic">AMAL manages a $9B float. Paid earns a 0.2% spread. This assumes 100% of the float is accessible from the start date — which may be optimistic. A partial uptake assumption is more conservative.</div>
+          <div class="ass-formula">Revenue = Float × Spread % × Uptake % ÷ 12</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Float accessible (% of $9B)</span><span class="ass-val" id="av_amalPct">100%</span></div>
+            <input type="range" id="a_amalPct" min="10" max="100" value="100" step="10" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Spread %</span><span class="ass-val" id="av_amalSpread">0.20%</span></div>
+            <input type="range" id="a_amalSpread" min="0.05" max="0.5" value="0.2" step="0.05" oninput="updateModel()">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- GROUP 3: HEADCOUNT -->
+    <div class="ass-group">
+      <div class="ass-group-title">Cost &amp; Headcount</div>
+      <div class="ass-grid">
+
+        <div class="ass-card" style="grid-column:1/-1">
+          <div class="ass-card-label">Headcount Schedule</div>
+          <div class="ass-mechanic">Current team of 5 (Lawless, Bartram, Nourozi, Chen, Cohen) plus planned hires. Each hire adds to the monthly wage base. Toggle off hires you don't think will proceed — the model will remove their salary from the cost base.</div>
+          <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px" id="headcountGrid">
+            <!-- built by JS -->
+          </div>
+          <div class="ass-controls" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div>
+              <div class="ass-row"><span>Annual salary — RE hires (each)</span><span class="ass-val" id="av_reSalary">$150K</span></div>
+              <input type="range" id="a_reSalary" min="100" max="200" value="150" step="10" oninput="updateModel()">
+            </div>
+            <div>
+              <div class="ass-row"><span>Annual salary — Compliance hire</span><span class="ass-val" id="av_compSalary">$130K</span></div>
+              <input type="range" id="a_compSalary" min="90" max="180" value="130" step="10" oninput="updateModel()">
+            </div>
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Overhead Costs</div>
+          <div class="ass-mechanic">Non-wage operating costs: subscriptions, subcontractors (dev team), accounting, insurance, bank fees, office expenses. Currently based on the actuals from the P&L for the first months then held flat.</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Overhead cost multiplier</span><span class="ass-val" id="av_ohdMult">100%</span></div>
+            <input type="range" id="a_ohdMult" min="70" max="150" value="100" step="5" oninput="updateModel()">
+            <div class="hint" style="margin-top:4px">Base overhead ~$67K/month. Scale up if adding marketing, office etc.</div>
+          </div>
+        </div>
+
+        <div class="ass-card">
+          <div class="ass-card-label">Super &amp; Payroll Tax</div>
+          <div class="ass-mechanic">Superannuation at 12% of wages. Payroll tax at 4.85% (Vic) applies once annual wages exceed $700K threshold — modelled as starting Jul-26 based on current payroll trajectory.</div>
+          <div class="ass-controls">
+            <div class="ass-row"><span>Super rate</span><span class="ass-val" id="av_superRate">12%</span></div>
+            <input type="range" id="a_superRate" min="11" max="13" value="12" step="0.5" oninput="updateModel()">
+            <div class="ass-row" style="margin-top:6px"><span>Payroll tax rate</span><span class="ass-val" id="av_ptRate">4.85%</span></div>
+            <input type="range" id="a_ptRate" min="0" max="7" value="4.85" step="0.25" oninput="updateModel()">
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+const MONTHS=['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
+const N=21;
+let tierOn=[true,true,true];
+let panelOpen=[true,true,true];
+
+// Headcount roster from Payroll sheet
+const HEADCOUNT=[
+  {id:'lawless', name:'Lawless',  role:'Executive', salary:80000,  type:'core'},
+  {id:'bartram', name:'Bartram',  role:'Executive', salary:150000, type:'core'},
+  {id:'nourozi', name:'Nourozi',  role:'Sales',     salary:100000, type:'core'},
+  {id:'chen',    name:'Chen',     role:'Dev',       salary:170000, type:'core'},
+  {id:'cohen',   name:'Cohen',    role:'Dev',       salary:150000, type:'core'},
+  {id:'re1',     name:'RE Hire 1',role:'Paid.RE',   salary:150000, type:'re'},
+  {id:'re2',     name:'RE Hire 2',role:'Paid.RE',   salary:150000, type:'re'},
+  {id:'re3',     name:'RE Hire 3',role:'Paid.RE',   salary:150000, type:'re'},
+  {id:'comp',    name:'Compliance',role:'Compliance',salary:130000,type:'comp'},
+];
+
+function buildHeadcountGrid(){
+  const grid=document.getElementById('headcountGrid');
+  if(!grid)return;
+  grid.innerHTML=HEADCOUNT.map(h=>`
+    <div class="hc-person">
+      <div style="flex:1">
+        <div class="hc-name">${h.name}</div>
+        <div class="hc-role">${h.role}</div>
+      </div>
+      <span class="hc-salary">$${(h.salary/1000).toFixed(0)}K</span>
+      <div class="hc-tog on" id="hctog_${h.id}" onclick="toggleHC('${h.id}')"></div>
+    </div>`).join('');
+}
+
+function toggleHC(id){
+  const el=document.getElementById('hctog_'+id);
+  if(!el)return;
+  el.classList.toggle('on'); el.classList.toggle('off');
+  updateModel();
+}
+
+function updateAssumptionDisplays(){
+  function sv(id,val){ const el=document.getElementById(id); if(el)el.textContent=val; }
+  function gva(id,def){ const el=document.getElementById(id); return el?parseFloat(el.value):def; }
+  function gca(id){ const el=document.getElementById(id); return el?el.checked:false; }
+  sv('av_platFee',  gva('a_platFee',0.2).toFixed(2)+'%');
+  sv('av_platAll',  gca('a_platAll')?'Yes':'No');
+  sv('av_subFee',   gva('a_subFee',0.3).toFixed(2)+'%');
+  sv('av_subAlloc', gva('a_subAlloc',80).toFixed(0)+'%');
+  sv('av_erAdopt2', gva('a_erAdopt',30).toFixed(0)+'%');
+  sv('av_erDays',   gva('a_erDays',30).toFixed(0)+' days');
+  sv('av_erRate',   gva('a_erRate',0.07).toFixed(2)+'%');
+  sv('av_retWith',  gva('a_retWith',10).toFixed(0)+'%');
+  sv('av_retCap',   gva('a_retCap',5).toFixed(1)+'%');
+  sv('av_retHold',  gva('a_retHold',15).toFixed(0)+' months');
+  sv('av_retYield', gva('a_retYield',4).toFixed(1)+'%');
+  sv('av_tranDays', gva('a_tranDays',5).toFixed(0)+' days');
+  sv('av_tranYield',gva('a_tranYield',4).toFixed(1)+'%');
+  sv('av_pipe2bRamp',gva('a_pipe2bRamp',12).toFixed(0)+' months');
+  sv('av_pipe2bVol','$'+gva('a_pipe2bVol',2).toFixed(2)+'B');
+  sv('av_balmainVol','$'+gva('a_balmainVol',200).toFixed(0)+'M');
+  sv('av_balmainRamp',gva('a_balmainRamp',0).toFixed(0)+' months');
+  sv('av_alceonVol','$'+gva('a_alceonVol',200).toFixed(0)+'M');
+  sv('av_alceonRamp',gva('a_alceonRamp',0).toFixed(0)+' months');
+  sv('av_amalPct',  gva('a_amalPct',100).toFixed(0)+'%');
+  sv('av_amalSpread',gva('a_amalSpread',0.2).toFixed(2)+'%');
+  sv('av_reSalary', '$'+gva('a_reSalary',150).toFixed(0)+'K');
+  sv('av_compSalary','$'+gva('a_compSalary',130).toFixed(0)+'K');
+  sv('av_ohdMult',  gva('a_ohdMult',100).toFixed(0)+'%');
+  sv('av_superRate',gva('a_superRate',12).toFixed(1)+'%');
+  sv('av_ptRate',   gva('a_ptRate',4.85).toFixed(2)+'%');
+  // also sync sidebar sliders that overlap
+  sv('erV',         gva('a_erAdopt',30).toFixed(0)+'%');
+  sv('yieldV',      gva('a_retYield',4).toFixed(1)+'%');
+}
+
+function gs(id){return parseInt(document.getElementById(id).value);}
+function gd(id){return parseFloat(document.getElementById(id).value)/100;}
+function gv(id){return parseFloat(document.getElementById(id).value);}
+
+function buildRevenue(){
+  const d1=tierOn[0]?gd('d1'):0, d2=tierOn[1]?gd('d2'):0, d3=tierOn[2]?gd('d3'):0;
+  const wg=gv('wageGrowth'), mbaA=gv('mbaAdopt')/100;
+  const bInv=gv('balmainInv'), reR=gv('reRaise')*1e6;
+
+  // Fee rate assumptions (from Assumptions tab — fall back to defaults if not rendered yet)
+  function gva(id, def){ const el=document.getElementById(id); return el?parseFloat(el.value):def; }
+  function gca(id){ const el=document.getElementById(id); return el?el.checked:false; }
+
+  const platFee    = gva('a_platFee', 0.2)/100;
+  const platAll    = gca('a_platAll');
+  const subFee     = gva('a_subFee', 0.3)/100;
+  const subAlloc   = gva('a_subAlloc', 80)/100;
+  const erAdopt    = gva('a_erAdopt', 30)/100;
+  const erDays     = gva('a_erDays', 30);
+  const erRate     = gva('a_erRate', 0.07)/100;
+  const retWith    = gva('a_retWith', 10)/100;
+  const retCap     = gva('a_retCap', 5)/100;
+  const retYieldR  = gva('a_retYield', 4)/100;
+  const tranDays   = gva('a_tranDays', 5);
+  const tranYieldR = gva('a_tranYield', 4)/100;
+  const pipe2bRamp = gva('a_pipe2bRamp', 12);
+  const pipe2bVol  = gva('a_pipe2bVol', 2)*1e9;
+  const balmainVol = gva('a_balmainVol', 200)*1e6;
+  const balmainRamp= gva('a_balmainRamp', 0);
+  const alceonVol  = gva('a_alceonVol', 200)*1e6;
+  const alceonRamp = gva('a_alceonRamp', 0);
+  const amalPct    = gva('a_amalPct', 100)/100;
+  const amalSpread = gva('a_amalSpread', 0.2)/100;
+  const reSalary   = gva('a_reSalary', 150)*1000/12;
+  const compSalary = gva('a_compSalary', 130)*1000/12;
+  const ohdMult    = gva('a_ohdMult', 100)/100;
+  const superRate  = gva('a_superRate', 12)/100;
+  const ptRate     = gva('a_ptRate', 4.85)/100;
+
+  // Headcount active flags
+  const hcActive = HEADCOUNT.map(h => {
+    const el = document.getElementById('hctog_'+h.id);
+    return el ? el.classList.contains('on') : true;
+  });
+
+  const sT=gs('s_trilogy'),sR=gs('s_remara');
+  const sMba=gs('s_mba'),sMbansw=gs('s_mbansw');
+  const sJC=gs('s_jc'),sMW=gs('s_mw'),sREIV=gs('s_reiv');
+  const sAv=gs('s_avari'),sMo=gs('s_moda'),sRa=gs('s_radius'),sPo=gs('s_portside');
+  const sLo=gs('s_logispace'),sP1=gs('s_plenary1'),sP2=gs('s_plenary2'),sP3=gs('s_plenary3');
+  const sBa=gs('s_balmain'),sAl=gs('s_alceon'),sAm=gs('s_amal'),sP2b=gs('s_pipe2b');
+
+  function act(s,i){return i>=s?1:0;}
+  function qtr(v,s,i){return act(s,i)*v/3;}
+  function proj(v,s,dur,i){return(i>=s&&i<s+dur)?v/dur:0;}
+  function rampAct(s,ramp,i){ if(i<s)return 0; const mo=i-s; return ramp===0?1:Math.min(1,(mo+1)/ramp); }
+
+  const triV=MONTHS.map((_,i)=>qtr(50e6,sT,i));
+  const remV=MONTHS.map((_,i)=>qtr(50e6,sR,i));
+  const avV =MONTHS.map((_,i)=>proj(30e6,sAv,10,i));
+  const moV =MONTHS.map((_,i)=>proj(100e6,sMo,10,i));
+  const raV =MONTHS.map((_,i)=>qtr(25e6,sRa,i));
+  const poV =MONTHS.map((_,i)=>qtr(20e6,sPo,i));
+  const loV =MONTHS.map((_,i)=>proj(150e6,sLo,10,i));
+  const p1V =MONTHS.map((_,i)=>proj(150e6,sP1,10,i));
+  const p2V =MONTHS.map((_,i)=>proj(150e6,sP2,10,i));
+  const p3V =MONTHS.map((_,i)=>proj(150e6,sP3,10,i));
+  const p2bV=MONTHS.map((_,i)=>act(sP2b,i)*pipe2bVol/pipe2bRamp);
+
+  // TIER 1
+  const t1parts={};
+  const contractedV = MONTHS.map((_,i)=>triV[i]+remV[i]);
+
+  t1parts.platform = contractedV.map(v=>v*platFee);
+  t1parts.subcon   = contractedV.map(v=>v*subAlloc*subFee);
+
+  // CORRECT RETENTION MECHANICS:
+  // Each month: withhold retWith% of (claim × subAlloc) UNTIL running balance hits retCap% of contract value
+  // Contract value proxy: total volume on platform so far × retCap gives the cap
+  // We track a running retention balance and stop accruing when cap is hit per contract
+  // Simplified: use cumulative contracted volume as proxy for "total contract value"
+  let retBal = 0;
+  let cumContracted = 0;
+  t1parts.retYield = MONTHS.map((_,i)=>{
+    const claimVal = contractedV[i] * subAlloc;
+    cumContracted += contractedV[i];
+    const retCapAmt = cumContracted * retCap;
+    const spaceLeft = Math.max(0, retCapAmt - retBal);
+    const withheld  = Math.min(claimVal * retWith, spaceLeft);
+    retBal += withheld;
+    return retBal * retYieldR / 12;
+  });
+
+  t1parts.tranYield = contractedV.map(v=>v*(tranDays/365)*tranYieldR);
+  t1parts.earlyRel  = contractedV.map(v=>v*erAdopt*erDays*erRate);
+
+  const sc=mbaA/0.02;
+  const mbaB=[1089,1197.9,1317.69,1449.46,1594.40,1753.85,1841.54,1933.61,2030.30,2131.81,2238.40,2350.32,2467.84,2591.23,2720.79,2856.83,2999.67,3149.65,3307.14,3472.49,3646.12];
+  const abcB=[6013.68,7216.42,8659.70,10391.64,12469.97,14963.97,17208.56,19789.84,22758.32,26172.07,30097.88,34612.56,38073.82,41881.20,46069.32,50676.25,55743.88,61318.26,67450.09,74195.10,81614.61];
+  t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*sc:0);
+  const tier1=MONTHS.map((_,i)=>Object.values(t1parts).reduce((s,a)=>s+a[i],0)*d1);
+
+  // TIER 2
+  const t2parts={};
+  const mnswR=[0,0,0,36000,72000,120000,180000,240000,276000,288000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000];
+  t2parts.mbansw=MONTHS.map((_,i)=>i>=sMbansw?mnswR[i]:0);
+  function reRamp(fullYr,start,i){
+    if(i<start)return 0;
+    const mo=i-start;
+    const r=[0.1,0.3,0.5,0.8,0.9,1,1,1,1,1,1,1];
+    return fullYr/12*r[Math.min(mo,r.length-1)];
+  }
+  t2parts.jc   =MONTHS.map((_,i)=>reRamp(400000,sJC,i));
+  t2parts.mw   =MONTHS.map((_,i)=>reRamp(166667,sMW,i));
+  t2parts.reiv =MONTHS.map((_,i)=>reRamp(193000,sREIV,i));
+  t2parts.reEq =MONTHS.map((_,i)=>(i===15||i===16)?reR/2:0);
+  const tier2=MONTHS.map((_,i)=>Object.values(t2parts).reduce((s,a)=>s+a[i],0)*d2);
+
+  // TIER 3
+  const t3parts={};
+  const pipV=MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
+  t3parts.pipSubcon  =pipV.map(v=>v*subAlloc*subFee);
+  t3parts.pipPlatform=pipV.map((v,i)=>platAll?v*platFee:0);
+  const bScale=bInv/5;
+  t3parts.balmain=MONTHS.map((_,i)=>i>=sBa?balmainVol*platFee*bScale*rampAct(sBa,balmainRamp,i):0);
+  t3parts.alceon =MONTHS.map((_,i)=>i>=sAl?alceonVol*platFee*rampAct(sAl,alceonRamp,i):0);
+  t3parts.amal   =MONTHS.map((_,i)=>i>=sAm?9e9*amalPct*amalSpread/12:0);
+  t3parts.pipe2b =p2bV.map(v=>v*subAlloc*subFee);
+  const tier3=MONTHS.map((_,i)=>Object.values(t3parts).reduce((s,a)=>s+a[i],0)*d3);
+
+  const totalRev=MONTHS.map((_,i)=>tier1[i]+tier2[i]+tier3[i]);
+
+  // COSTS — headcount driven
+  // Base core team wages
+  const coreWages = MONTHS.map((_,i)=>{
+    let w=0;
+    HEADCOUNT.forEach((h,hi)=>{
+      if(!hcActive[hi]) return;
+      if(h.type==='core'){
+        const base=h.salary/12;
+        // growth tiers from model
+        const g = i<3?0:i<9?0.04:i<15?0.08:0.12;
+        w+=base*(1+g/12*i); // simple approximation
+      } else if(h.type==='re' && i>=9){
+        w+=reSalary;
+      } else if(h.type==='comp' && i>=9){
+        w+=compSalary;
+      }
+    });
+    return w;
+  });
+
+  // Super on headcount wages
+  const superCost = coreWages.map(w=>w*superRate);
+
+  // Payroll tax — applies from Jul-26 (month 3) once above threshold
+  const ptCost = MONTHS.map((_,i)=>i>=3?coreWages[i]*ptRate:0);
+
+  // Overhead (non-wage opex) from actuals, scaled
+  const ohdBase=[69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
+  const ohd=ohdBase.map(v=>v*ohdMult);
+
+  const cosB=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
+  const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
+  const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
+  const cashFlow=MONTHS.map((_,i)=>ebitda[i]);
+  const cash=[];let bal=388189;
+  for(let i=0;i<N;i++){bal+=cashFlow[i];cash.push(bal);}
+
+  const projects=[
+    {name:'Trilogy',tier:1,arr:triV.map(v=>v*platFee*d1)},
+    {name:'Remara',tier:1,arr:remV.map(v=>v*platFee*d1)},
+    {name:'MBA / ABIC fees',tier:1,arr:t1parts.mbaAbic.map(v=>v*d1)},
+    {name:'MBANSW Licensing',tier:2,arr:t2parts.mbansw.map(v=>v*d2)},
+    {name:'Paid.RE — Jellis Craig',tier:2,arr:t2parts.jc.map(v=>v*d2)},
+    {name:'Paid.RE — Marshall White',tier:2,arr:t2parts.mw.map(v=>v*d2)},
+    {name:'Paid.RE — REIV',tier:2,arr:t2parts.reiv.map(v=>v*d2)},
+    {name:'Avari',tier:3,arr:avV.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Moda',tier:3,arr:moV.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Radius',tier:3,arr:raV.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Portside',tier:3,arr:poV.map(v=>v*subAlloc*subFee*d3)},
+    {name:'LogiSpace',tier:3,arr:loV.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Plenary #1',tier:3,arr:p1V.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Plenary #2',tier:3,arr:p2V.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Plenary #3',tier:3,arr:p3V.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Balmain',tier:3,arr:t3parts.balmain.map(v=>v*d3)},
+    {name:'Alceon',tier:3,arr:t3parts.alceon.map(v=>v*d3)},
+    {name:'AMAL',tier:3,arr:t3parts.amal.map(v=>v*d3)},
+    {name:'$2B Pipeline',tier:3,arr:t3parts.pipe2b.map(v=>v*d3)},
+  ];
+
+  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3};
+}
+
+function fmt(v){
+  if(v===undefined||v===null||isNaN(v))return'—';
+  const a=Math.abs(v);
+  const s=a>=1e6?'$'+(a/1e6).toFixed(1)+'M':a>=1e3?'$'+(a/1e3).toFixed(0)+'K':'$'+a.toFixed(0);
+  return v<0?'('+s+')':s;
+}
+function fmts(v){
+  if(!v&&v!==0||isNaN(v))return'—';
+  const a=Math.abs(v);
+  if(a<50)return'—';
+  const s=a>=1e6?'$'+(a/1e6).toFixed(1)+'M':a>=1e3?'$'+(a/1e3).toFixed(0)+'K':'$'+a.toFixed(0);
+  return v<0?'('+s+')':s;
+}
+function sum(arr,a,b){return arr.slice(a,b+1).reduce((s,v)=>s+v,0);}
+
+let cRev,cCash;
+function drawCharts(d){
+  const co={responsive:true,maintainAspectRatio:true,
+    plugins:{legend:{labels:{color:'#8b96b0',font:{size:10,family:'DM Mono'},boxWidth:9,padding:6}}},
+    scales:{
+      x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
+      y:{ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},grid:{color:'#1e2840'}}
+    }
+  };
+  if(cRev)cRev.destroy();
+  cRev=new Chart(document.getElementById('chartRev'),{type:'bar',data:{labels:MONTHS,datasets:[
+    {label:'T1 Contracted',data:d.tier1,backgroundColor:'rgba(16,185,129,.8)',stack:'s'},
+    {label:'T2 Alliance+RE',data:d.tier2,backgroundColor:'rgba(59,130,246,.8)',stack:'s'},
+    {label:'T3 Pipeline',data:d.tier3,backgroundColor:'rgba(245,158,11,.8)',stack:'s'},
+  ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
+
+  if(cCash)cCash.destroy();
+  cCash=new Chart(document.getElementById('chartCash'),{type:'line',data:{labels:MONTHS,datasets:[
+    {label:'Cash Balance',data:d.cash,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
+    {label:'EBITDA',data:d.ebitda,borderColor:'rgba(16,185,129,.55)',borderDash:[4,3],tension:.3,pointRadius:2,fill:false}
+  ]},options:co});
+}
+
+function buildSummary(d){
+  const cols=['FY2026 Q4','FY2027','FY2028 H1'];
+  const rng=[[0,2],[3,14],[15,20]];
+  const rows=[
+    {sec:'Revenue'},
+    {n:'Contracted (T1)',a:d.tier1},{n:'Alliance & RE (T2)',a:d.tier2},{n:'Named Pipeline (T3)',a:d.tier3},
+    {ttl:'Total Revenue',a:d.totalRev},
+    {sec:'Costs'},
+    {n:'Cost of Sales',a:d.cosB,neg:true},{n:'Operating Expenses',a:d.exp,neg:true},
+    {ttl:'Gross Profit',a:d.gp},
+    {net:'EBITDA',a:d.ebitda},
+  ];
+  let h='<thead><tr><th>Line Item</th>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of rows){
+    if(r.sec){h+=`<tr class="sec"><td colspan="4">${r.sec}</td></tr>`;continue;}
+    if(r.net){h+=`<tr class="net"><td>${r.net}</td>`;rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${v<0?'neg':'pos'}">${fmt(v)}</td>`;});h+='</tr>';continue;}
+    if(r.ttl){h+=`<tr class="ttl"><td>${r.ttl}</td>`;rng.forEach(([a,b])=>h+=`<td>${fmt(sum(r.a,a,b))}</td>`);h+='</tr>';continue;}
+    h+=`<tr><td>${r.n}</td>`;rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${r.neg?'neg':''}">${fmt(r.neg?-v:v)}</td>`;});h+='</tr>';
+  }
+  h+='</tbody>';
+  document.getElementById('tblSummary').innerHTML=h;
+}
+
+function buildMonthly(id,rows){
+  let h='<thead><tr><th>Line Item</th>'+MONTHS.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of rows){
+    if(r.sec){h+=`<tr class="sec"><td colspan="${N+1}">${r.sec}</td></tr>`;continue;}
+    h+=`<tr class="${r.net?'net':r.ttl?'ttl':''}"><td>${r.n||r.net||r.ttl}</td>`;
+    MONTHS.forEach((_,i)=>{
+      const raw=r.a[i];const v=r.neg?-raw:raw;
+      const cl=r.net?(v<0?'neg':'pos'):(r.neg&&raw>0?'neg':'');
+      h+=`<td class="${cl}">${fmts(v)}</td>`;
+    });
+    h+='</tr>';
+  }
+  h+='</tbody>';
+  document.getElementById(id).innerHTML=h;
+}
+
+function buildTiming(d){
+  const tc=['var(--t1)','var(--t2)','var(--t3)'];
+  let h='<thead><tr><th>Project / Source</th>'+MONTHS.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>';
+  for(const p of d.projects){
+    const col=tc[p.tier-1];
+    const hasAny=p.arr.some(v=>v>50);
+    h+=`<tr><td><span style="color:${col};font-weight:600">T${p.tier}</span> ${p.name}</td>`;
+    p.arr.forEach(v=>{
+      if(v<50){h+=`<td style="color:var(--text3);font-size:9px">—</td>`;}
+      else{h+=`<td style="color:${col};font-weight:500">${fmts(v)}</td>`;}
+    });
+    h+='</tr>';
+  }
+  // Totals
+  h+=`<tr class="ttl"><td>TOTAL REVENUE</td>`;
+  d.totalRev.forEach(v=>h+=`<td class="pos">${fmts(v)}</td>`);
+  h+='</tr></tbody>';
+  document.getElementById('tblTiming').innerHTML=h;
+}
+
+function updateKPIs(d){
+  document.getElementById('k1').textContent=fmt(sum(d.totalRev,0,2));
+  document.getElementById('k2').textContent=fmt(sum(d.totalRev,3,14));
+  document.getElementById('k3').textContent=fmt(sum(d.totalRev,15,20));
+  const mc=Math.min(...d.cash);
+  document.getElementById('k4').textContent=fmt(mc);
+  document.getElementById('k4').style.color=mc>0?'var(--t1)':mc>-500000?'var(--t3)':'#f87171';
+  document.getElementById('k4s').textContent=mc>0?'Stays positive ✓':'Needs attention ⚠';
+}
+
+function updateModel(){
+  document.getElementById('d1v').textContent=document.getElementById('d1').value+'%';
+  document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
+  document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
+  document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  document.getElementById('yieldV').textContent=document.getElementById('yieldRate').value+'%';
+  document.getElementById('erV').textContent=document.getElementById('erAdopt').value+'%';
+  document.getElementById('wageV').textContent=document.getElementById('wageGrowth').value+'%';
+  document.getElementById('balmainInvV').textContent='$'+document.getElementById('balmainInv').value+'M';
+  document.getElementById('reRaiseV').textContent='$'+document.getElementById('reRaise').value+'M';
+
+  const dids=['d1','d2','d3'];
+  for(let i=0;i<3;i++){
+    const on=tierOn[i];
+    document.getElementById('sp'+(i+1)).textContent=(on?'ON':'OFF')+' · '+document.getElementById(dids[i]).value+'%';
+    document.querySelectorAll('#spills .spill')[i].style.opacity=on?'1':'0.4';
+  }
+
+  const d=buildRevenue();
+  updateKPIs(d);
+  drawCharts(d);
+  buildSummary(d);
+  buildMonthly('tblPL',[
+    {sec:'Revenue'},{n:'Tier 1',a:d.tier1},{n:'Tier 2',a:d.tier2},{n:'Tier 3',a:d.tier3},
+    {ttl:'Total Revenue',a:d.totalRev},
+    {sec:'Costs'},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Opex & Wages',a:d.exp,neg:true},
+    {ttl:'Gross Profit',a:d.gp},{net:'EBITDA',a:d.ebitda},
+  ]);
+  buildMonthly('tblCash',[
+    {n:'Revenue',a:d.totalRev},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Expenses',a:d.exp,neg:true},
+    {net:'Net Cashflow',a:d.cashFlow},{net:'Cash Balance',a:d.cash},
+  ]);
+  buildTiming(d);
+  buildBS(d);
+}
+
+function buildBS(d){
+  // Opening balances Apr-26 (from actuals in Excel)
+  const OB = {
+    cash:         492748,
+    cashOnHand:   45,
+    testAcct:     1000,
+    ip:           1938155,
+    acctPayable:  -37939,
+    gstLiab:      -60972,
+    paygLiab:     -68799,
+    sundryCreditors: -9910,
+    superPayable: -6760,
+    interEntityLoans: -2215817,
+    shareCapital: -6833507,
+    retainedEarnings: 5252188,
+    openingNetIncome: 62175,   // Mar-26 net income already in retained
+  };
+
+  // Monthly GST: ~10% of revenue collected, ~10% of expenses claimable, net payable quarterly
+  // PAYG: from payroll base, cleared quarterly
+  // Super: from payroll, cleared quarterly (Mar/Jun/Sep/Dec)
+  const QMONTHS = [2,5,8,11,14,17,20]; // Jun,Sep,Dec,Mar,Jun,Sep,Dec -- settlement months
+
+  // Build rolling BS month by month
+  const bs = [];
+  let cash = OB.cash;
+  let retEarnings = OB.retainedEarnings + OB.openingNetIncome; // rolled Apr opening
+  let gstAccrual = OB.gstLiab;
+  let paygAccrual = OB.paygLiab;
+  let superAccrual = OB.superPayable;
+  let acctPay = OB.acctPayable;
+  let interEntity = OB.interEntityLoans;
+  let shareCapital = OB.shareCapital;
+  // RE raise adds to share capital in months 15+16
+  const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
+
+  for(let i=0;i<N;i++){
+    // Cash moves with net cashflow
+    cash += d.cashFlow[i];
+
+    // Retained earnings accumulate net income (EBITDA is our proxy)
+    retEarnings += d.ebitda[i];
+
+    // Accruals: GST ~9% of rev - 10% of opex
+    const gstRev = d.totalRev[i]*0.09;
+    const gstExp = (d.cosB[i]+d.exp[i])*0.10;
+    gstAccrual -= (gstRev - gstExp); // net accrual (liability grows)
+    if(QMONTHS.includes(i)){ gstAccrual = 0; } // settled quarterly (simplified)
+
+    // PAYG accrual from wages
+    const paygMonthly = d.exp[i]*0.30*0.325; // ~30% wages × 32.5% PAYG
+    paygAccrual -= paygMonthly;
+    if(QMONTHS.includes(i)){ paygAccrual = OB.paygLiab * 0.3; } // partial reset
+
+    // Super: 12% of wages, cleared quarterly
+    const superMonthly = d.exp[i]*0.30*0.12;
+    superAccrual -= superMonthly;
+    if(QMONTHS.includes(i)){ superAccrual = 0; }
+
+    // Accounts payable ~= 1 month of opex/30 days
+    acctPay = -(d.cosB[i]+d.exp[i])*0.20;
+
+    // Inter-entity loans reduce as business becomes self-funding
+    // Reduce by ~$60K/month once cashflow positive, faster when profitable
+    const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
+    interEntity = Math.min(0, interEntity + reduction);
+
+    // Share capital: RE equity raise in months 15 and 16
+    if(i===15||i===16) shareCapital -= reRaiseTotal/2;
+
+    // Sundry creditors decline (from model)
+    const sundryCreditors = i<12 ? OB.sundryCreditors*(1-i/12) : 0;
+
+    // ASSETS
+    const totalCurrentAssets = cash + OB.cashOnHand + OB.testAcct;
+    const totalAssets = totalCurrentAssets + OB.ip;
+
+    // LIABILITIES
+    const totalCurrentLiab = acctPay + gstAccrual + paygAccrual + superAccrual + sundryCreditors + interEntity;
+
+    // EQUITY
+    const netIncome = d.ebitda[i];
+    const totalEquity = shareCapital + retEarnings;
+    const totalLiabEquity = totalCurrentLiab + totalEquity;
+
+    bs.push({
+      // Assets
+      cash, ip:OB.ip, totalCurrentAssets, totalAssets,
+      // Liabilities
+      acctPay, gstAccrual, paygAccrual, superAccrual, sundryCreditors, interEntity, totalCurrentLiab,
+      // Equity
+      shareCapital, retEarnings, totalEquity, totalLiabEquity,
+      // Check
+      checkDiff: totalAssets + totalLiabEquity,
+    });
+  }
+
+  // Update KPI cards
+  const last = bs[bs.length-1];
+  document.getElementById('bsAssets').textContent = fmt(last.totalAssets);
+  document.getElementById('bsEquity').textContent = fmt(last.totalEquity);
+  document.getElementById('bsEquity').style.color = last.totalEquity > 0 ? 'var(--t1)' : '#f87171';
+
+  // Build table
+  const sections = [
+    {sec:'ASSETS'},
+    {n:'Cash (trading account)',        key:'cash',             pos:true},
+    {n:'Cash on hand',                  fixed:OB.cashOnHand,    pos:true},
+    {n:'IP & Trademarks',               fixed:OB.ip,            pos:true},
+    {ttl:'TOTAL ASSETS',                key:'totalAssets',      pos:true},
+    {sec:'LIABILITIES'},
+    {n:'Accounts Payable',              key:'acctPay'},
+    {n:'GST Liabilities',               key:'gstAccrual'},
+    {n:'PAYG Withholdings',             key:'paygAccrual'},
+    {n:'Superannuation Payable',        key:'superAccrual'},
+    {n:'Sundry Creditors',              key:'sundryCreditors'},
+    {n:'Inter-entity Loans',            key:'interEntity'},
+    {ttl:'TOTAL LIABILITIES',           key:'totalCurrentLiab'},
+    {sec:"SHAREHOLDER'S EQUITY"},
+    {n:'Issued Share Capital',          key:'shareCapital'},
+    {n:'Retained Earnings (accum.)',    key:'retEarnings',      pos:true},
+    {ttl:"TOTAL EQUITY",                key:'totalEquity'},
+    {net:'TOTAL LIABILITIES + EQUITY',  key:'totalLiabEquity'},
+  ];
+
+  let h='<thead><tr><th>Line Item</th>'+MONTHS.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>';
+  for(const r of sections){
+    if(r.sec){
+      h+=`<tr class="sec"><td colspan="${N+1}">${r.sec}</td></tr>`;
+      continue;
+    }
+    const cls = r.net?'net':r.ttl?'ttl':'';
+    const label = r.n||r.ttl||r.net;
+    h+=`<tr class="${cls}"><td>${label}</td>`;
+    bs.forEach(row=>{
+      let v;
+      if(r.fixed!==undefined) v=r.fixed;
+      else v=row[r.key];
+      const isNeg = v<0;
+      const cellCls = r.net?(Math.abs(v)<1000?'':''):(r.pos&&v>0?'pos':(!r.pos&&v<0?'neg':''));
+      // For display: assets show positive, liabilities show as negative (bracketed)
+      h+=`<td class="${cellCls}">${fmts(v)}</td>`;
+    });
+    h+='</tr>';
+  }
+  h+='</tbody>';
+  document.getElementById('tblBS').innerHTML=h;
+}
+
+function toggleTier(n){
+  tierOn[n-1]=!tierOn[n-1];
+  document.getElementById('tog'+n).className='toggle '+(tierOn[n-1]?'on':'off');
+  updateModel();
+}
+function togglePanel(n){
+  panelOpen[n-1]=!panelOpen[n-1];
+  document.getElementById('tbody'+n).className='tier-body '+(panelOpen[n-1]?'open':'');
+}
+function showView(v){
+  ['summary','pl','cashflow','timing','bs','assumptions'].forEach(n=>{
+    document.getElementById('view-'+n).style.display=n===v?'':'none';
+  });
+  document.querySelectorAll('.tab').forEach((t,i)=>{
+    t.classList.toggle('active',['summary','pl','cashflow','timing','bs','assumptions'][i]===v);
+  });
+}
+
+function updateModel(){
+  document.getElementById('d1v').textContent=document.getElementById('d1').value+'%';
+  document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
+  document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
+  document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  document.getElementById('wageV').textContent=document.getElementById('wageGrowth').value+'%';
+  document.getElementById('balmainInvV').textContent='$'+document.getElementById('balmainInv').value+'M';
+  document.getElementById('reRaiseV').textContent='$'+document.getElementById('reRaise').value+'M';
+  updateAssumptionDisplays();
+
+  const dids=['d1','d2','d3'];
+  for(let i=0;i<3;i++){
+    const on=tierOn[i];
+    document.getElementById('sp'+(i+1)).textContent=(on?'ON':'OFF')+' · '+document.getElementById(dids[i]).value+'%';
+    document.querySelectorAll('#spills .spill')[i].style.opacity=on?'1':'0.4';
+  }
+
+  const d=buildRevenue();
+  updateKPIs(d);
+  drawCharts(d);
+  buildSummary(d);
+  buildMonthly('tblPL',[
+    {sec:'Revenue'},{n:'Tier 1',a:d.tier1},{n:'Tier 2',a:d.tier2},{n:'Tier 3',a:d.tier3},
+    {ttl:'Total Revenue',a:d.totalRev},
+    {sec:'Costs'},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Opex & Wages',a:d.exp,neg:true},
+    {ttl:'Gross Profit',a:d.gp},{net:'EBITDA',a:d.ebitda},
+  ]);
+  buildMonthly('tblCash',[
+    {n:'Revenue',a:d.totalRev},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Expenses',a:d.exp,neg:true},
+    {net:'Net Cashflow',a:d.cashFlow},{net:'Cash Balance',a:d.cash},
+  ]);
+  buildTiming(d);
+  buildBS(d);
+}
+
+// Init
+buildHeadcountGrid();
+updateModel();
+</script>
+</body>
+</html>
