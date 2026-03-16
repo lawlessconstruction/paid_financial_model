@@ -269,6 +269,14 @@ tr.net td:first-child{color:var(--t1);}
 <div class="sb-section">
   <div class="sb-label">Capital Events</div>
   <div class="sl-group">
+    <div class="sl-row"><span class="sl-label" style="color:var(--t1);font-weight:600">O'Rourke — $1M equity</span><span class="sl-val" style="color:var(--t1)">Apr-26</span></div>
+    <div class="hint">Rights issue — ordinary shares. Fixed Apr-26.</div>
+  </div>
+  <div class="sl-group">
+    <div class="sl-row"><span class="sl-label" style="color:var(--t1);font-weight:600">Hirst — $100K equity</span><span class="sl-val" style="color:var(--t1)">Apr-26</span></div>
+    <div class="hint">Rights issue alongside O'Rourke. Fixed Apr-26.</div>
+  </div>
+  <div class="sl-group" style="margin-top:4px">
     <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
     <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
     <div class="hint">Also a lending customer — separate lines</div>
@@ -926,7 +934,12 @@ function buildRevenue(){
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
   const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
-  const cashFlow=MONTHS.map((_,i)=>ebitda[i]);
+  // Equity raises — O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
+  const OROURKE = 1000000;
+  const HIRST   = 100000;
+  const equityIn = MONTHS.map((_,i) => i===0 ? OROURKE + HIRST : 0);
+
+  const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i]);
   const cash=[];let bal=388189;
   for(let i=0;i<N;i++){bal+=cashFlow[i];cash.push(bal);}
 
@@ -952,7 +965,7 @@ function buildRevenue(){
     {name:'$2B Pipeline',tier:3,arr:t3parts.pipe2b.map(v=>v*d3)},
   ];
 
-  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3};
+  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn};
 }
 
 function fmt(v){
@@ -997,11 +1010,91 @@ function drawCharts(d){
     {label:'T3 Pipeline',  data:foreT3,     backgroundColor:'rgba(245,158,11,.8)',  stack:'s'},
   ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
 
+  // Equity raise bars — all raises across the full timeline
+  const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
+  const equityBars = allLabels.map((_,i)=>{
+    const fi = i - NA; // forecast index
+    if(fi === 0) return 1100000;           // O'Rourke $1M + Hirst $100K
+    if(fi === 15 || fi === 16) return reRaiseTotal/2; // RE raise split over 2 months
+    return null;
+  });
+
   if(cCash)cCash.destroy();
-  cCash=new Chart(document.getElementById('chartCash'),{type:'line',data:{labels:allLabels,datasets:[
-    {label:'Cash Balance',data:actCashPadded,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
-    {label:'EBITDA',      data:actEbitda,    borderColor:'rgba(16,185,129,.55)',borderDash:[4,3],tension:.3,pointRadius:2,fill:false}
-  ]},options:co});
+  cCash=new Chart(document.getElementById('chartCash'),{
+    type:'bar',
+    data:{
+      labels:allLabels,
+      datasets:[
+        // Equity raise bars — secondary Y axis
+        {
+          type:'bar',
+          label:'Equity Raised',
+          data:equityBars,
+          backgroundColor:'rgba(52,211,153,0.75)',
+          borderColor:'rgba(52,211,153,1)',
+          borderWidth:1,
+          yAxisID:'yEquity',
+          order:2,
+        },
+        // Cash balance line — primary Y axis
+        {
+          type:'line',
+          label:'Cash Balance',
+          data:actCashPadded,
+          borderColor:'#60a5fa',
+          backgroundColor:'rgba(96,165,250,.07)',
+          fill:true,tension:.3,
+          pointRadius:3,pointBackgroundColor:'#60a5fa',
+          yAxisID:'y',
+          order:1,
+        },
+        // EBITDA line — primary Y axis
+        {
+          type:'line',
+          label:'EBITDA',
+          data:actEbitda,
+          borderColor:'rgba(16,185,129,.55)',
+          borderDash:[4,3],tension:.3,
+          pointRadius:2,fill:false,
+          yAxisID:'y',
+          order:1,
+        },
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:true,
+      plugins:{
+        legend:{labels:{color:'#8b96b0',font:{size:10,family:'DM Mono'},boxWidth:9,padding:6}},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>{
+              const v=ctx.parsed.y;
+              if(v===null||v===undefined) return null;
+              const s=Math.abs(v)>=1e6?'$'+(v/1e6).toFixed(1)+'M':Math.abs(v)>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v.toFixed(0);
+              return ctx.dataset.label+': '+s;
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
+        y:{
+          position:'left',
+          ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
+            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},
+          grid:{color:'#1e2840'}
+        },
+        yEquity:{
+          position:'right',
+          title:{display:true,text:'Equity Raised',color:'rgba(52,211,153,0.7)',font:{size:9,family:'DM Mono'}},
+          ticks:{color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'},
+            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},
+          grid:{drawOnChartArea:false},
+          min:0,
+        }
+      }
+    }
+  });
 }
 
 function buildSummary(d){
@@ -1165,6 +1258,7 @@ function updateModel(){
   ]);
   buildMonthly('tblCash',[
     {n:'Revenue',        a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {n:'Equity Raised',  a:d.equityIn, act:Array(NA).fill(0)},
     {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
     {n:'Expenses',       a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
     {net:'Net Cashflow', a:d.cashFlow, act:PL_ACTUALS.cashFlow},
@@ -1241,7 +1335,8 @@ function buildBS(d){
     const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
     interEntity = Math.min(0, interEntity + reduction);
 
-    // Share capital: RE equity raise in months 15 and 16
+    // Share capital: O'Rourke + Hirst in month 0 (Apr-26), RE raise in months 15+16
+    if(i===0) shareCapital -= (1000000 + 100000);
     if(i===15||i===16) shareCapital -= reRaiseTotal/2;
 
     // Sundry creditors decline (from model)
