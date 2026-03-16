@@ -1191,8 +1191,12 @@ function buildRevenue(){
   const ohd=ohdBase.map(v=>v*ohdMult);
 
   // Cost of sales — base from Excel P&L plus MBANSW rev share (60% of $100/contract)
+  // Recalculate MBANSW monthly contracts here (same formula, avoids scope issue)
   const cosBbase=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
-  const mbanswCoS = mbanswContractsMonthly.map(n => n * 60); // $60/contract CoS
+  const mbanswCoS = MONTHS.map((_,i)=>{
+    if(i<sMbansw) return 0;
+    return Math.min(1,(i-sMbansw+1)/12) * 25000/12 * 60; // $60/contract CoS
+  });
   const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
@@ -1229,7 +1233,7 @@ function buildRevenue(){
     {name:'Trilogy',tier:1,arr:triV.map(v=>v*platFee*d1)},
     {name:'Remara',tier:1,arr:remV.map(v=>v*platFee*d1)},
     {name:'MBA / ABIC fees',tier:1,arr:t1parts.mbaAbic.map(v=>v*d1)},
-    {name:'MBANSW Licensing',tier:2,arr:t2parts.mbansw.map(v=>v*d2)},
+    {name:'MBANSW Licensing',tier:2,arr:t2parts.mbanswLicence.map(v=>v*d2)},
     {name:'Paid.RE — Jellis Craig',tier:2,arr:t2parts.jc.map(v=>v*d2)},
     {name:'Paid.RE — Marshall White',tier:2,arr:t2parts.mw.map(v=>v*d2)},
     {name:'Paid.RE — REIV',tier:2,arr:t2parts.reiv.map(v=>v*d2)},
