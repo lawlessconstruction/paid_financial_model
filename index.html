@@ -732,9 +732,9 @@ function buildRevenue(){
   function act(s,i){return i>=s?1:0;}
 
   // ── RAMP PROFILES ─────────────────────────────────────────────────────────
-  // Tier 1: soft ramp starting at 20% in Apr-26 (matching actual volume level)
-  // builds steadily to 100% by Jan-27 as more projects onboard each quarter
-  const T1_RAMP = [0.20,0.28,0.38,0.50,0.60,0.70,0.80,0.88,0.94,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
+  // Tier 1: starts at 40% in Apr-26 — matches actual volume level in Mar-26 ($68K)
+  // preventing a dip at the actuals/forecast boundary. Builds to 100% by Jan-27.
+  const T1_RAMP = [0.40,0.50,0.60,0.70,0.78,0.85,0.90,0.94,0.97,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
 
   // Early release fee adoption ramps separately — feature only just going live
   // Starts at 0%, builds to full adoption assumption over ~9 months
