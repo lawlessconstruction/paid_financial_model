@@ -646,12 +646,13 @@ tr.net td:first-child{color:var(--t1);}
               <span style="font-size:12px;font-weight:600;color:var(--text)">Current Team (5 staff)</span>
               <div class="hc-tog on" id="hctog_coreteam" onclick="toggleCoreTeam()" style="width:34px;height:18px"></div>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
-              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Lawless</div><div style="color:var(--text3)">Executive · $80K</div></div>
-              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Bartram</div><div style="color:var(--text3)">Executive · $150K</div></div>
-              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Nourozi</div><div style="color:var(--text3)">Sales · $100K</div></div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">
               <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Chen</div><div style="color:var(--text3)">Dev · $170K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Bartram</div><div style="color:var(--text3)">Executive · $150K</div></div>
               <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Cohen</div><div style="color:var(--text3)">Dev · $150K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Nourozi</div><div style="color:var(--text3)">Sales · $100K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Lin</div><div style="color:var(--text3)">Dev · $100K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Lawless</div><div style="color:var(--text3)">Executive · $80K</div></div>
             </div>
           </div>
 
@@ -1167,11 +1168,12 @@ function buildRevenue(){
   // COSTS — headcount driven
   // Core team salaries (always on as a group, toggled by coreTeamOn)
   const CORE_TEAM = [
-    {salary:80000},   // Lawless
-    {salary:150000},  // Bartram
-    {salary:100000},  // Nourozi
-    {salary:170000},  // Chen
-    {salary:150000},  // Cohen
+    {salary:170000},   // Chen
+    {salary:150000},   // Bartram
+    {salary:150000},   // Cohen
+    {salary:100000},   // Nourozi
+    {salary:100000},   // Lin
+    {salary:80000},    // Lawless
   ];
   const coreBaseSalary = coreTeamOn ? CORE_TEAM.reduce((s,h)=>s+h.salary,0) : 0;
 
