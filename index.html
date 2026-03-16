@@ -42,13 +42,27 @@ header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex
   .main { display: block !important; }
   .content { padding: 0 !important; overflow: visible !important; }
 
-  /* Show all four report views when printing */
-  #view-summary, #view-pl, #view-cashflow, #view-bs { display: block !important; }
+  /* Show all four report views + assumptions page when printing */
+  #view-summary, #view-pl, #view-cashflow, #view-bs, #print-assumptions { display: block !important; }
 
   /* Page breaks between sections */
-  #view-pl       { page-break-before: always; }
-  #view-cashflow { page-break-before: always; }
-  #view-bs       { page-break-before: always; }
+  #view-pl           { page-break-before: always; }
+  #view-cashflow     { page-break-before: always; }
+  #view-bs           { page-break-before: always; }
+  #print-assumptions { page-break-before: always; }
+
+  /* Assumptions page styles */
+  #print-assumptions { font-size: 8pt; color: #111; line-height: 1.5; }
+  #print-assumptions h1 { font-size: 14pt; font-weight: 700; margin-bottom: 6px; border-bottom: 2px solid #111; padding-bottom: 4px; }
+  #print-assumptions h2 { font-size: 10pt; font-weight: 700; margin: 12px 0 4px; padding: 3px 6px; }
+  #print-assumptions h2.t1 { background: #d1fae5; color: #065f46; }
+  #print-assumptions h2.t2 { background: #dbeafe; color: #1e40af; }
+  #print-assumptions h2.t3 { background: #fef3c7; color: #92400e; }
+  #print-assumptions h3 { font-size: 9pt; font-weight: 600; margin: 8px 0 2px; color: #374151; }
+  #print-assumptions ul { margin: 0 0 6px 16px; padding: 0; }
+  #print-assumptions li { margin-bottom: 2px; }
+  #print-assumptions .ass-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+  #print-assumptions .note { font-size: 7.5pt; color: #6b7280; font-style: italic; margin-top: 4px; }
 
   /* Critical: allow tables to overflow and scale down to fit */
   .tbl-wrap {
@@ -477,6 +491,134 @@ tr.net td:first-child{color:var(--t1);}
       Inter-entity loans reduce as the platform becomes self-funding.
       GST, PAYG and Super liabilities estimated from expense base, settle quarterly.
       Share capital reflects $6.83M issued ordinary shares. Retained earnings accumulate net income monthly.
+    </div>
+  </div>
+
+  </div>
+
+  <!-- PRINT-ONLY ASSUMPTIONS PAGE — hidden on screen, shown when printing -->
+  <div id="print-assumptions" style="display:none">
+    <h1>Model Assumptions &amp; Revenue Mechanics</h1>
+    <p class="note">This page summarises how each revenue line is built up. All figures are pre-discount. Discount rates reflect probability-weighting applied by tier.</p>
+
+    <div class="ass-cols">
+    <div>
+
+    <h2 class="t1">TIER 1 — Contracted (Certain)</h2>
+    <p class="note">Already generating actual revenue. Default discount: 55%.</p>
+
+    <h3>Trilogy &amp; Remara ($50M/qtr each)</h3>
+    <ul>
+      <li>Quarterly construction funding volumes of $50M each, ramping from 40% of run-rate in Apr-26 to 100% by Jan-27</li>
+      <li><strong>Platform fee:</strong> 0.2% on total contracted volume</li>
+      <li><strong>Subcontractor security fee:</strong> 0.3% × 80% subcontractor allocation</li>
+      <li><strong>Dual retention yield:</strong> Pool 1 — funder withholds up to 5% of contract value from builder; Pool 2 — builder withholds up to 5% from subcontractors. Both pools earn 4% p.a. yield while held on platform</li>
+      <li><strong>Transitory yield:</strong> All funds sit on platform avg 5 days before waterfalling — earns 4% p.a. on float</li>
+      <li><strong>Early release fees:</strong> 0.07%/day × avg 30 days × adoption rate (ramps from 0% to 30% over 9 months as feature launches)</li>
+    </ul>
+
+    <h3>MBA / ABIC Contract Fees</h3>
+    <ul>
+      <li>Pool of ~2,000 contracts/yr at $179/contract avg (incl. GST)</li>
+      <li>Currently ~400 contracts active (20% penetration), ramping — controlled by MBA/ABIC penetration slider</li>
+      <li>Revenue taken directly from actual P&amp;L and scaled proportionally with penetration</li>
+    </ul>
+
+    <h3>MBA / ABIC Financial Features</h3>
+    <ul>
+      <li>Average contract value: $2M</li>
+      <li>Current financial feature uptake: 1%, ramping to 5% target over 24 months</li>
+      <li>Generates: subcon security fee (0.3%×80%) + dual retention yield + transitory yield on the opted-in volume</li>
+      <li>At 5% uptake on 20% penetration: 20 contracts × $2M = $40M of construction volume on financial features</li>
+    </ul>
+
+    <h2 class="t2">TIER 2 — Alliance &amp; RE Contracted (Largely Certain)</h2>
+    <p class="note">Signed but not yet in actual revenue. Default discount: 90%.</p>
+
+    <h3>MBANSW Licensing</h3>
+    <ul>
+      <li>25,000 contracts/yr at $100/contract gross revenue; 60% cost of sales (rev share back to MBANSW) = $40/contract net</li>
+      <li>Ramps to 100% penetration over 12 months from Sep-26 start</li>
+      <li>At full ramp: 25,000 × $40 = $1M/yr net licence revenue</li>
+      <li><strong>Financial features</strong> (5% default uptake): avg contract value $750K (residential/commercial mix)</li>
+      <li>Financial features generate: subcon fee (0.3%×80%) + transitory yield — no retention (residential jobs don't hold retention)</li>
+    </ul>
+
+    <h3>Paid.RE — Jellis Craig</h3>
+    <ul>
+      <li>12,000 property sales/yr at avg $1M sale price = $12B/yr in sales volume</li>
+      <li>10% deposit held on platform for avg 60 days on every sale</li>
+      <li>Deposit pool = monthly sales × 10% × 2 months hold</li>
+      <li>Revenue = deposit pool × 4% p.a. ÷ 12</li>
+      <li>Onboards over 12 months from Jan-27; at full ramp deposit pool ≈ $240M → ~$800K/month</li>
+    </ul>
+
+    <h3>Paid.RE — Marshall White</h3>
+    <ul>
+      <li>3,000 sales/yr at avg $3M = $9B/yr in sales volume</li>
+      <li>Same 10% deposit / 60-day hold / 4% yield mechanics as Jellis Craig</li>
+      <li>At full ramp deposit pool ≈ $180M → ~$600K/month</li>
+    </ul>
+
+    </div>
+    <div>
+
+    <h3>Paid.RE — REIV</h3>
+    <ul>
+      <li>30,000 sales/yr total market; Paid expects 10% uptake = 3,000 sales at avg $800K</li>
+      <li>Same 10% deposit / 60-day hold / 4% yield mechanics</li>
+      <li>Uptake ramps from 0 to 10% over 12 months from Jan-27</li>
+      <li>At full ramp deposit pool ≈ $48M → ~$160K/month</li>
+    </ul>
+
+    <h2 class="t3">TIER 3 — Named Pipeline (Expected)</h2>
+    <p class="note">Named prospects, not yet signed. Default discount: 75%. All use 10%→30%→60%→100% onboarding ramp over 4 months.</p>
+    <p class="note">All Tier 3 funders generate: subcon fee (0.3%×80%) + dual retention yield (Pool 1 funder→builder + Pool 2 builder→subcon) + transitory yield + early release fees. No upfront platform fee (Trilogy/Remara specific).</p>
+
+    <h3>Named Construction Projects &amp; Funders</h3>
+    <ul>
+      <li><strong>Avari:</strong> $30M fixed-term project, 10-month draw profile</li>
+      <li><strong>Moda:</strong> $100M fixed-term project, 10-month draw profile</li>
+      <li><strong>Radius:</strong> $25M/qtr ongoing quarterly funder</li>
+      <li><strong>Portside:</strong> $20M/qtr ongoing quarterly funder</li>
+      <li><strong>LogiSpace:</strong> $150M fixed-term project, 10-month draw profile</li>
+      <li><strong>LogiSpace Pipeline:</strong> $2B of additional LogiSpace work flowing over 12 months (adjustable in Assumptions)</li>
+      <li><strong>Plenary #1, #2, #3:</strong> $150M each, staggered start dates, 10-month draw profiles</li>
+      <li><strong>Balmain:</strong> ~$200M/month lending volume (adjustable). Also equity investor $5M Jul-26</li>
+      <li><strong>Alceon:</strong> ~$200M/month lending volume (adjustable)</li>
+    </ul>
+
+    <h3>AMAL — $9B Float</h3>
+    <ul>
+      <li>AMAL manages a $9B investment float — different mechanic to construction funders</li>
+      <li>Paid earns a 0.2% yield spread on the accessible float (adjustable in Assumptions)</li>
+      <li>No subcon fee, no retention, no early release — pure float yield spread only</li>
+      <li>At 100% access, 0.2% spread: $9B × 0.2% ÷ 12 = <strong>$1.5M/month</strong> at full ramp</li>
+    </ul>
+
+    <h2 style="background:#f3f4f6;color:#111;padding:3px 6px;font-size:10pt;margin-top:12px">CAPITAL EVENTS</h2>
+    <ul>
+      <li><strong>O'Rourke — $1M:</strong> Rights issue, ordinary shares, Apr-26</li>
+      <li><strong>Hirst — $100K:</strong> Rights issue alongside O'Rourke, Apr-26</li>
+      <li><strong>Balmain — up to $5M:</strong> Equity investment, Jul-26</li>
+      <li><strong>R&amp;D Grant — $600K:</strong> Sep-26 (shown as other income in P&amp;L)</li>
+      <li><strong>AMAL loan repayment — $600K:</strong> Sep-26 (offsets R&amp;D grant — net zero on cash)</li>
+      <li><strong>RE Platform raise — $1.5M:</strong> REIV $750K + others, split Oct-26 and Nov-26</li>
+      <li><strong>Convertible note — $60K:</strong> Repayment incl. interest, Jul-26</li>
+      <li><strong>Secured loan — $420K:</strong> Repayment incl. interest, Aug-27</li>
+    </ul>
+
+    <h2 style="background:#f3f4f6;color:#111;padding:3px 6px;font-size:10pt;margin-top:12px">COST BASE</h2>
+    <ul>
+      <li><strong>Core team (6 staff):</strong> Chen $170K · Bartram $150K · Cohen $150K · Nourozi $100K · Lin $100K · Lawless $80K = $750K/yr base</li>
+      <li>Wage growth: 0% for first 3 months, then 4% → 8% → 12% annualised in successive tiers</li>
+      <li>Superannuation: 12% on wages</li>
+      <li>Payroll tax: 4.85% (Vic) applied from Jul-26</li>
+      <li>Overhead (non-wage opex): ~$67K/month base from actuals — subscriptions, dev subcontractors, accounting, insurance. Scalable via overhead multiplier in Assumptions</li>
+      <li>Future hires: individually toggled in Assumptions — each with configurable start month and salary</li>
+    </ul>
+
+    </div>
     </div>
   </div>
 
