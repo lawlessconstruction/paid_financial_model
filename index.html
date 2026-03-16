@@ -279,7 +279,7 @@ tr.net td:first-child{color:var(--t1);}
   <div class="sl-group" style="margin-top:4px">
     <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
     <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
-    <div class="hint">Equity in Apr-26 — shown on cash chart. Also a lending customer (Tier 3).</div>
+    <div class="hint">Equity in Jul-26 — shown on cash chart. Also a lending customer (Tier 3).</div>
   </div>
   <div class="sl-group">
     <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$1.5M</span></div>
@@ -937,9 +937,13 @@ function buildRevenue(){
   // Equity raises
   const OROURKE   = 1000000;
   const HIRST     = 100000;
-  const BALMAIN_INV = gv('balmainInv') * 1e6; // up to $5M, slider controlled
-  // All three arrive in Apr-26 (month 0)
-  const equityIn = MONTHS.map((_,i) => i===0 ? OROURKE + HIRST + BALMAIN_INV : 0);
+  const BALMAIN_INV = gv('balmainInv') * 1e6;
+  // O'Rourke + Hirst in Apr-26 (month 0), Balmain in Jul-26 (month 3)
+  const equityIn = MONTHS.map((_,i) => {
+    if(i===0) return OROURKE + HIRST;
+    if(i===3) return BALMAIN_INV;
+    return 0;
+  });
 
   const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i]);
   const cash=[];let bal=388189;
@@ -1012,14 +1016,19 @@ function drawCharts(d){
     {label:'T3 Pipeline',  data:foreT3,     backgroundColor:'rgba(245,158,11,.8)',  stack:'s'},
   ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
 
-  // Equity raise bars — all raises across the full timeline
+  // Equity raise bars
   const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
   const balmainInvAmt = parseFloat(document.getElementById('balmainInv').value)*1e6;
-  const apr26equity = 1000000 + 100000 + balmainInvAmt; // O'Rourke + Hirst + Balmain
+  const apr26equity = 1000000 + 100000; // O'Rourke + Hirst
+  const jul26equity = balmainInvAmt;    // Balmain — Jul-26
+  const allEquity = [apr26equity, jul26equity, reRaiseTotal/2, reRaiseTotal/2];
+  const maxEquity = Math.max(...allEquity.filter(v=>v>0)) * 1.4;
+
   const equityBars = allLabels.map((_,i)=>{
-    const fi = i - NA; // forecast index
-    if(fi === 0) return apr26equity;                  // Apr-26: all three investors
-    if(fi === 15 || fi === 16) return reRaiseTotal/2; // RE raise split over 2 months
+    const fi = i - NA;
+    if(fi === 0) return apr26equity;              // Apr-26: O'Rourke + Hirst
+    if(fi === 3) return jul26equity;              // Jul-26: Balmain
+    if(fi === 15 || fi === 16) return reRaiseTotal/2; // RE raise
     return null;
   });
 
@@ -1095,6 +1104,7 @@ function drawCharts(d){
             callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},
           grid:{drawOnChartArea:false},
           min:0,
+          max:maxEquity,
         }
       }
     }
@@ -1339,8 +1349,11 @@ function buildBS(d){
     const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
     interEntity = Math.min(0, interEntity + reduction);
 
-    // Share capital: O'Rourke $1M + Hirst $100K + Balmain in Apr-26 (month 0), RE raise in months 15+16
-    if(i===0) shareCapital -= (1000000 + 100000 + parseFloat(document.getElementById('balmainInv').value)*1e6);
+    // O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
+    if(i===0) shareCapital -= (1000000 + 100000);
+    // Balmain investment in Jul-26 (month 3)
+    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
+    // RE raise in months 15+16
     if(i===15||i===16) shareCapital -= reRaiseTotal/2;
 
     // Sundry creditors decline (from model)
