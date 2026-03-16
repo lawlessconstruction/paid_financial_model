@@ -493,18 +493,37 @@ tr.net td:first-child{color:var(--t1);}
 
         <div class="ass-card" style="grid-column:1/-1">
           <div class="ass-card-label">Headcount Schedule</div>
-          <div class="ass-mechanic">Current team of 5 (Lawless, Bartram, Nourozi, Chen, Cohen) plus planned hires. Each hire adds to the monthly wage base. Toggle off hires you don't think will proceed — the model will remove their salary from the cost base.</div>
-          <div style="margin-top:10px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px" id="headcountGrid">
+          <div class="ass-mechanic">Current team of 5 is fixed — they are all retained. Use the future hire slots below to model additional headcount over time. Each hire starts from the selected month and adds their salary to the cost base from that point.</div>
+
+          <!-- Current team — single toggle -->
+          <div style="margin-top:12px;margin-bottom:14px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:12px 14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <span style="font-size:12px;font-weight:600;color:var(--text)">Current Team (5 staff)</span>
+              <div class="hc-tog on" id="hctog_coreteam" onclick="toggleCoreTeam()" style="width:34px;height:18px"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Lawless</div><div style="color:var(--text3)">Executive · $80K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Bartram</div><div style="color:var(--text3)">Executive · $150K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Nourozi</div><div style="color:var(--text3)">Sales · $100K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Chen</div><div style="color:var(--text3)">Dev · $170K</div></div>
+              <div style="text-align:center;font-size:10px;color:var(--text2)"><div style="font-weight:600">Cohen</div><div style="color:var(--text3)">Dev · $150K</div></div>
+            </div>
+          </div>
+
+          <!-- Future hires -->
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Future Hires — toggle on to include in cost base</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px" id="headcountGrid">
             <!-- built by JS -->
           </div>
+
           <div class="ass-controls" style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
             <div>
-              <div class="ass-row"><span>Annual salary — RE hires (each)</span><span class="ass-val" id="av_reSalary">$150K</span></div>
-              <input type="range" id="a_reSalary" min="100" max="200" value="150" step="10" oninput="updateModel()">
+              <div class="ass-row"><span>Default salary — future hires</span><span class="ass-val" id="av_reSalary">$120K</span></div>
+              <input type="range" id="a_reSalary" min="80" max="250" value="120" step="10" oninput="updateModel()">
             </div>
             <div>
-              <div class="ass-row"><span>Annual salary — Compliance hire</span><span class="ass-val" id="av_compSalary">$130K</span></div>
-              <input type="range" id="a_compSalary" min="90" max="180" value="130" step="10" oninput="updateModel()">
+              <div class="ass-row"><span>Super rate</span><span class="ass-val" id="av_superRate">12%</span></div>
+              <input type="range" id="a_superRate" min="11" max="13" value="12" step="0.5" oninput="updateModel()">
             </div>
           </div>
         </div>
@@ -570,37 +589,60 @@ const ACTUALS = {
 let tierOn=[true,true,true];
 let panelOpen=[true,true,true];
 
-// Headcount roster from Payroll sheet
-const HEADCOUNT=[
-  {id:'lawless', name:'Lawless',  role:'Executive', salary:80000,  type:'core'},
-  {id:'bartram', name:'Bartram',  role:'Executive', salary:150000, type:'core'},
-  {id:'nourozi', name:'Nourozi',  role:'Sales',     salary:100000, type:'core'},
-  {id:'chen',    name:'Chen',     role:'Dev',       salary:170000, type:'core'},
-  {id:'cohen',   name:'Cohen',    role:'Dev',       salary:150000, type:'core'},
-  {id:'re1',     name:'RE Hire 1',role:'Paid.RE',   salary:150000, type:'re'},
-  {id:'re2',     name:'RE Hire 2',role:'Paid.RE',   salary:150000, type:'re'},
-  {id:'re3',     name:'RE Hire 3',role:'Paid.RE',   salary:150000, type:'re'},
-  {id:'comp',    name:'Compliance',role:'Compliance',salary:130000,type:'comp'},
+// Core team — always on as a group
+let coreTeamOn = true;
+
+// Future hires — 10 slots, each togglable with a start month and role/salary
+const FUTURE_HIRES = [
+  {id:'fh1', name:'Hire 1', role:'RE / Sales',    salary:120000, startMonth:9},
+  {id:'fh2', name:'Hire 2', role:'RE / Sales',    salary:120000, startMonth:9},
+  {id:'fh3', name:'Hire 3', role:'RE / Sales',    salary:120000, startMonth:9},
+  {id:'fh4', name:'Hire 4', role:'Tech / Dev',    salary:150000, startMonth:12},
+  {id:'fh5', name:'Hire 5', role:'Tech / Dev',    salary:150000, startMonth:12},
+  {id:'fh6', name:'Hire 6', role:'Compliance',    salary:130000, startMonth:12},
+  {id:'fh7', name:'Hire 7', role:'Operations',    salary:110000, startMonth:15},
+  {id:'fh8', name:'Hire 8', role:'Operations',    salary:110000, startMonth:15},
+  {id:'fh9', name:'Hire 9', role:'Sales / BD',    salary:120000, startMonth:15},
+  {id:'fh10',name:'Hire 10',role:'Executive',     salary:180000, startMonth:18},
 ];
 
 function buildHeadcountGrid(){
   const grid=document.getElementById('headcountGrid');
   if(!grid)return;
-  grid.innerHTML=HEADCOUNT.map(h=>`
-    <div class="hc-person">
-      <div style="flex:1">
-        <div class="hc-name">${h.name}</div>
-        <div class="hc-role">${h.role}</div>
+  grid.innerHTML=FUTURE_HIRES.map(h=>`
+    <div class="hc-person" style="flex-direction:column;align-items:flex-start;gap:6px">
+      <div style="display:flex;align-items:center;width:100%;gap:6px">
+        <div style="flex:1">
+          <div class="hc-name">${h.name}</div>
+          <div class="hc-role">${h.role}</div>
+        </div>
+        <div class="hc-tog off" id="hctog_${h.id}" onclick="toggleHC('${h.id}')"></div>
       </div>
-      <span class="hc-salary">$${(h.salary/1000).toFixed(0)}K</span>
-      <div class="hc-tog on" id="hctog_${h.id}" onclick="toggleHC('${h.id}')"></div>
+      <div style="display:flex;align-items:center;gap:6px;width:100%">
+        <span style="font-size:9px;color:var(--text3);min-width:30px">Start:</span>
+        <select class="proj-start" id="fhstart_${h.id}" onchange="updateModel()" style="flex:1;font-size:9px">
+          ${MONTHS.map((m,i)=>`<option value="${i}"${i===h.startMonth?' selected':''}>${m}</option>`).join('')}
+        </select>
+        <span style="font-size:9px;color:var(--text3);min-width:20px">Sal:</span>
+        <select class="proj-start" id="fhsal_${h.id}" onchange="updateModel()" style="flex:1;font-size:9px">
+          ${[80,100,110,120,130,140,150,160,170,180,200,220,250].map(s=>`<option value="${s}"${s===h.salary/1000?' selected':''}>\$${s}K</option>`).join('')}
+        </select>
+      </div>
     </div>`).join('');
+}
+
+function toggleCoreTeam(){
+  coreTeamOn=!coreTeamOn;
+  const el=document.getElementById('hctog_coreteam');
+  if(el){el.className='hc-tog '+(coreTeamOn?'on':'off');}
+  updateModel();
 }
 
 function toggleHC(id){
   const el=document.getElementById('hctog_'+id);
   if(!el)return;
-  el.classList.toggle('on'); el.classList.toggle('off');
+  const isOn=el.classList.contains('on');
+  el.className='hc-tog '+(isOn?'off':'on');
   updateModel();
 }
 
@@ -629,8 +671,7 @@ function updateAssumptionDisplays(){
   sv('av_alceonRamp',gva('a_alceonRamp',0).toFixed(0)+' months');
   sv('av_amalPct',  gva('a_amalPct',100).toFixed(0)+'%');
   sv('av_amalSpread',gva('a_amalSpread',0.2).toFixed(2)+'%');
-  sv('av_reSalary', '$'+gva('a_reSalary',150).toFixed(0)+'K');
-  sv('av_compSalary','$'+gva('a_compSalary',130).toFixed(0)+'K');
+  sv('av_reSalary', '$'+gva('a_reSalary',120).toFixed(0)+'K');
   sv('av_ohdMult',  gva('a_ohdMult',100).toFixed(0)+'%');
   sv('av_superRate',gva('a_superRate',12).toFixed(1)+'%');
   sv('av_ptRate',   gva('a_ptRate',4.85).toFixed(2)+'%');
@@ -672,17 +713,9 @@ function buildRevenue(){
   const alceonRamp = gva('a_alceonRamp', 0);
   const amalPct    = gva('a_amalPct', 100)/100;
   const amalSpread = gva('a_amalSpread', 0.2)/100;
-  const reSalary   = gva('a_reSalary', 150)*1000/12;
-  const compSalary = gva('a_compSalary', 130)*1000/12;
   const ohdMult    = gva('a_ohdMult', 100)/100;
   const superRate  = gva('a_superRate', 12)/100;
   const ptRate     = gva('a_ptRate', 4.85)/100;
-
-  // Headcount active flags
-  const hcActive = HEADCOUNT.map(h => {
-    const el = document.getElementById('hctog_'+h.id);
-    return el ? el.classList.contains('on') : true;
-  });
 
   const sT=gs('s_trilogy'),sR=gs('s_remara');
   const sMba=gs('s_mba'),sMbansw=gs('s_mbansw');
@@ -818,23 +851,36 @@ function buildRevenue(){
   const totalRev=MONTHS.map((_,i)=>tier1[i]+tier2[i]+tier3[i]);
 
   // COSTS — headcount driven
-  // Base core team wages
-  const coreWages = MONTHS.map((_,i)=>{
+  // Core team salaries (always on as a group, toggled by coreTeamOn)
+  const CORE_TEAM = [
+    {salary:80000},   // Lawless
+    {salary:150000},  // Bartram
+    {salary:100000},  // Nourozi
+    {salary:170000},  // Chen
+    {salary:150000},  // Cohen
+  ];
+  const coreBaseSalary = coreTeamOn ? CORE_TEAM.reduce((s,h)=>s+h.salary,0) : 0;
+
+  // Future hires — each individually toggled, with own start month and salary
+  const futureHireWages = MONTHS.map((_,i)=>{
     let w=0;
-    HEADCOUNT.forEach((h,hi)=>{
-      if(!hcActive[hi]) return;
-      if(h.type==='core'){
-        const base=h.salary/12;
-        // growth tiers from model
-        const g = i<3?0:i<9?0.04:i<15?0.08:0.12;
-        w+=base*(1+g/12*i); // simple approximation
-      } else if(h.type==='re' && i>=9){
-        w+=reSalary;
-      } else if(h.type==='comp' && i>=9){
-        w+=compSalary;
-      }
+    FUTURE_HIRES.forEach(h=>{
+      const togEl=document.getElementById('hctog_'+h.id);
+      const isOn=togEl?togEl.classList.contains('on'):false;
+      if(!isOn) return;
+      const startEl=document.getElementById('fhstart_'+h.id);
+      const salEl=document.getElementById('fhsal_'+h.id);
+      const startMo=startEl?parseInt(startEl.value):h.startMonth;
+      const sal=salEl?parseFloat(salEl.value)*1000:h.salary;
+      if(i>=startMo) w+=sal/12;
     });
     return w;
+  });
+
+  // Core wages with annual growth tiers (from Payroll sheet: 4% → 8% → 12%)
+  const coreWages = MONTHS.map((_,i)=>{
+    const g = i<3?0:i<9?0.04:i<15?0.08:0.12;
+    return (coreBaseSalary/12)*(1+g/12*i) + futureHireWages[i];
   });
 
   // Super on headcount wages
