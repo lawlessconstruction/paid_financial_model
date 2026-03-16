@@ -946,7 +946,7 @@ function buildRevenue(){
   const equityIn = MONTHS.map((_,i) => {
     if(i===0)  return OROURKE + HIRST;
     if(i===3)  return BALMAIN_INV;
-    if(i===15||i===16) return reR/2;
+    if(i===6||i===7) return reR/2;
     return 0;
   });
 
@@ -1059,7 +1059,7 @@ function drawCharts(d){
     const fi=i-NA;
     if(fi===0)  return apr26equity;
     if(fi===3)  return jul26equity;
-    if(fi===15||fi===16) return reRaiseTotal/2;
+    if(fi===6||fi===7) return reRaiseTotal/2;
     return null;
   });
   const grantData = capLabels.map((_,i)=> i-NA===5 ? 600000 : null);
@@ -1373,7 +1373,7 @@ function buildBS(d){
     // Balmain investment in Jul-26 (month 3)
     if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
     // RE raise in months 15+16
-    if(i===15||i===16) shareCapital -= reRaiseTotal/2;
+    if(i===6||i===7) shareCapital -= reRaiseTotal/2;
 
     // Sundry creditors decline (from model)
     const sundryCreditors = i<12 ? OB.sundryCreditors*(1-i/12) : 0;
