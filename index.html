@@ -319,6 +319,10 @@ tr.net td:first-child{color:var(--t1);}
     <div class="chart-card"><div class="chart-title">Monthly Revenue by Tier</div><canvas id="chartRev" height="200"></canvas></div>
     <div class="chart-card"><div class="chart-title">Cash Position &amp; EBITDA</div><canvas id="chartCash" height="200"></canvas></div>
   </div>
+  <div class="chart-card" style="margin-bottom:22px">
+    <div class="chart-title">Capital Events — Equity Raises, Grants &amp; Loan Repayments</div>
+    <canvas id="chartCapitalIn" height="130"></canvas>
+  </div>
 
   <div id="view-summary">
     <div class="tbl-card">
@@ -868,7 +872,7 @@ function buildRevenue(){
   t2parts.jc   =MONTHS.map((_,i)=>reRamp(400000,sJC,i));
   t2parts.mw   =MONTHS.map((_,i)=>reRamp(166667,sMW,i));
   t2parts.reiv =MONTHS.map((_,i)=>reRamp(193000,sREIV,i));
-  t2parts.reEq =MONTHS.map((_,i)=>(i===15||i===16)?reR/2:0);
+  // Note: RE platform raise is equity, not revenue — handled in cashflow/capital events separately
   const tier2=MONTHS.map((_,i)=>Object.values(t2parts).reduce((s,a)=>s+a[i],0)*d2);
 
   // TIER 3
@@ -938,10 +942,11 @@ function buildRevenue(){
   const OROURKE   = 1000000;
   const HIRST     = 100000;
   const BALMAIN_INV = gv('balmainInv') * 1e6;
-  // O'Rourke + Hirst in Apr-26 (month 0), Balmain in Jul-26 (month 3)
+  // O'Rourke + Hirst in Apr-26 (month 0), Balmain in Jul-26 (month 3), RE raise in months 15+16
   const equityIn = MONTHS.map((_,i) => {
-    if(i===0) return OROURKE + HIRST;
-    if(i===3) return BALMAIN_INV;
+    if(i===0)  return OROURKE + HIRST;
+    if(i===3)  return BALMAIN_INV;
+    if(i===15||i===16) return reR/2;
     return 0;
   });
 
@@ -1028,139 +1033,97 @@ function drawCharts(d){
     {label:'T3 Pipeline',  data:foreT3,     backgroundColor:'rgba(245,158,11,.8)',  stack:'s'},
   ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
 
-  // Equity raise bars
+  // Capital events data (shared between cash chart and capital chart)
   const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
   const balmainInvAmt = parseFloat(document.getElementById('balmainInv').value)*1e6;
-  const apr26equity = 1000000 + 100000; // O'Rourke + Hirst
-  const jul26equity = balmainInvAmt;    // Balmain — Jul-26
-  const allEquity = [apr26equity, jul26equity, reRaiseTotal/2, reRaiseTotal/2];
-  const maxEquity = Math.max(...allEquity.filter(v=>v>0)) * 1.4;
+  const apr26equity = 1000000 + 100000;
+  const jul26equity = balmainInvAmt;
 
-  const equityBars = allLabels.map((_,i)=>{
-    const fi = i - NA;
-    if(fi === 0) return apr26equity;              // Apr-26: O'Rourke + Hirst
-    if(fi === 3) return jul26equity;              // Jul-26: Balmain
-    if(fi === 15 || fi === 16) return reRaiseTotal/2; // RE raise
-    return null;
-  });
-
-  // Loan repayment bars — shown as negative on a separate dataset (red)
-  const repaymentBars = allLabels.map((_,i)=>{
-    const fi = i - NA;
-    if(fi === 3)  return -60000;   // Convertible note Jul-26
-    if(fi === 5)  return -600000;  // AMAL repayment Sep-26
-    if(fi === 16) return -420000;  // Secured loan Aug-27
-    return null;
-  });
-
-  // Grant bar — shown as positive green on secondary axis
-  const grantBars = allLabels.map((_,i)=>{
-    const fi = i - NA;
-    if(fi === 5) return 600000;  // R&D Grant Sep-26
-    return null;
-  });
-
+  // ── CLEAN CASH CHART ─────────────────────────────────────────────────────
   if(cCash)cCash.destroy();
   cCash=new Chart(document.getElementById('chartCash'),{
+    type:'line',
+    data:{labels:allLabels,datasets:[
+      {label:'Cash Balance',data:actCashPadded,borderColor:'#60a5fa',
+       backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
+      {label:'EBITDA',data:actEbitda,borderColor:'rgba(16,185,129,.55)',
+       borderDash:[4,3],tension:.3,pointRadius:2,fill:false},
+    ]},
+    options:{...co}
+  });
+
+  // ── CAPITAL EVENTS CHART ─────────────────────────────────────────────────
+  const capLabels = allLabels;
+
+  const equityData = capLabels.map((_,i)=>{
+    const fi=i-NA;
+    if(fi===0)  return apr26equity;
+    if(fi===3)  return jul26equity;
+    if(fi===15||fi===16) return reRaiseTotal/2;
+    return null;
+  });
+  const grantData = capLabels.map((_,i)=> i-NA===5 ? 600000 : null);
+  // Repayments positive (red bars above axis)
+  const repayData = capLabels.map((_,i)=>{
+    const fi=i-NA;
+    if(fi===3)  return 60000;
+    if(fi===5)  return 600000;
+    if(fi===16) return 420000;
+    return null;
+  });
+
+  const valueLabelPlugin = {
+    id:'valueLabel',
+    afterDatasetsDraw(chart){
+      const ctx=chart.ctx;
+      chart.data.datasets.forEach((ds,di)=>{
+        const meta=chart.getDatasetMeta(di);
+        meta.data.forEach((bar,i)=>{
+          const v=ds.data[i];
+          if(v===null||v===undefined||v===0) return;
+          const a=Math.abs(v);
+          const lbl='$'+(a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a);
+          ctx.save();
+          ctx.fillStyle='#e8edf5';
+          ctx.font='bold 11px DM Mono, monospace';
+          ctx.textAlign='center';
+          ctx.textBaseline='bottom';
+          ctx.fillText(lbl, bar.x, bar.y-4);
+          ctx.restore();
+        });
+      });
+    }
+  };
+
+  if(window.cCapIn) window.cCapIn.destroy();
+  window.cCapIn=new Chart(document.getElementById('chartCapitalIn'),{
     type:'bar',
-    data:{
-      labels:allLabels,
-      datasets:[
-        // Equity raise bars
-        {
-          type:'bar',
-          label:'Equity Raised',
-          data:equityBars,
-          backgroundColor:'rgba(52,211,153,0.75)',
-          borderColor:'rgba(52,211,153,1)',
-          borderWidth:1,
-          yAxisID:'yEquity',
-          order:2,
-        },
-        // R&D Grant bar
-        {
-          type:'bar',
-          label:'R&D Grant',
-          data:grantBars,
-          backgroundColor:'rgba(251,191,36,0.75)',
-          borderColor:'rgba(251,191,36,1)',
-          borderWidth:1,
-          yAxisID:'yEquity',
-          order:2,
-        },
-        // Loan repayment bars (negative)
-        {
-          type:'bar',
-          label:'Loan Repayments',
-          data:repaymentBars,
-          backgroundColor:'rgba(239,68,68,0.65)',
-          borderColor:'rgba(239,68,68,1)',
-          borderWidth:1,
-          yAxisID:'yEquity',
-          order:2,
-        },
-        // Cash balance line — primary Y axis
-        {
-          type:'line',
-          label:'Cash Balance',
-          data:actCashPadded,
-          borderColor:'#60a5fa',
-          backgroundColor:'rgba(96,165,250,.07)',
-          fill:true,tension:.3,
-          pointRadius:3,pointBackgroundColor:'#60a5fa',
-          yAxisID:'y',
-          order:1,
-        },
-        // EBITDA line — primary Y axis
-        {
-          type:'line',
-          label:'EBITDA',
-          data:actEbitda,
-          borderColor:'rgba(16,185,129,.55)',
-          borderDash:[4,3],tension:.3,
-          pointRadius:2,fill:false,
-          yAxisID:'y',
-          order:1,
-        },
-      ]
-    },
+    data:{labels:capLabels,datasets:[
+      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4},
+      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4},
+      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4},
+    ]},
     options:{
-      responsive:true,maintainAspectRatio:true,
+      responsive:true, maintainAspectRatio:true,
       plugins:{
         legend:{labels:{color:'#8b96b0',font:{size:10,family:'DM Mono'},boxWidth:9,padding:6}},
-        tooltip:{
-          callbacks:{
-            label:(ctx)=>{
-              const v=ctx.parsed.y;
-              if(v===null||v===undefined) return null;
-              const s=Math.abs(v)>=1e6?'$'+(v/1e6).toFixed(1)+'M':Math.abs(v)>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v.toFixed(0);
-              return ctx.dataset.label+': '+s;
-            }
-          }
-        }
+        tooltip:{callbacks:{label:(ctx)=>{
+          const v=ctx.parsed.y; if(!v) return null;
+          const a=Math.abs(v);
+          return ctx.dataset.label+': $'+(a>=1e6?(a/1e6).toFixed(2)+'M':(a/1e3).toFixed(0)+'K');
+        }}},
       },
       scales:{
         x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
-        y:{
-          position:'left',
-          ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
-            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},
-          grid:{color:'#1e2840'}
-        },
-        yEquity:{
-          position:'right',
-          title:{display:true,text:'Capital Events ($)',color:'rgba(148,163,184,0.6)',font:{size:9,family:'DM Mono'}},
-          ticks:{color:'rgba(148,163,184,0.5)',font:{size:9,family:'DM Mono'},
-            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(Math.abs(v)/1e3).toFixed(0)+'K'+(v<0?'':''): '$'+v},
-          grid:{drawOnChartArea:false},
-          min:-maxEquity*0.5,
-          max:maxEquity,
-        }
+        y:{min:0,ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
+            callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
+          grid:{color:'#1e2840'}},
       }
-    }
+    },
+    plugins:[valueLabelPlugin]
   });
-}
 
+  if(window.cCapOut) window.cCapOut.destroy();
 function buildSummary(d){
   // Actuals: FY2026 H1 = Jul-25 to Feb-26 (all 8 actual months)
   const actTotRev = ACTUALS.revenue.reduce((s,v)=>s+v,0);
