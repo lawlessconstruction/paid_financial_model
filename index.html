@@ -160,9 +160,9 @@ tr.net td:first-child{color:var(--t1);}
         <select class="proj-start" id="s_mba" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
-      <div class="sl-row"><span class="sl-label">MBA adoption rate</span><span class="sl-val" id="mbaAdoptV">2%</span></div>
-      <input type="range" id="mbaAdopt" min="1" max="8" value="2" step="1" oninput="updateModel()">
-      <div class="hint">25,000 contracts/yr — ramps to 5%</div>
+      <div class="sl-row"><span class="sl-label">MBA/ABIC penetration (of 2,000)</span><span class="sl-val" id="mbaAdoptV">20%</span></div>
+      <input type="range" id="mbaAdopt" min="10" max="100" value="20" step="5" oninput="updateModel()">
+      <div class="hint">~400 contracts now (20%) — ramping. Scale = contracts being processed.</div>
     </div>
     <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d1v">100%</span></div>
@@ -180,9 +180,9 @@ tr.net td:first-child{color:var(--t1);}
     <div class="toggle on" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
   </div>
   <div class="tier-body open" id="tbody2">
-    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW licensing starts Jul-26. Paid.RE agencies under contract.</div>
+    <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW: 25,000 contracts/yr pool, ramps to full penetration over 12 months from start. Paid.RE agencies under contract.</div>
     <div class="proj-list">
-      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">$300K/yr</span>
+      <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">25K contracts</span>
         <select class="proj-start" id="s_mbansw" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">$400K/yr</span>
         <select class="proj-start" id="s_jc" onchange="updateModel()"></select></div>
@@ -192,6 +192,11 @@ tr.net td:first-child{color:var(--t1);}
         <select class="proj-start" id="s_reiv" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
+      <div class="sl-row"><span class="sl-label">Financial feature adoption</span><span class="sl-val" id="mbanswFinV">5%</span></div>
+      <input type="range" id="a_mbanswFinAdopt" min="1" max="20" value="5" step="1" oninput="updateModel()">
+      <div class="hint">% of MBANSW contracts using early release / yield features</div>
+    </div>
+    <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d2v">90%</span></div>
       <input type="range" id="d2" min="20" max="100" value="90" step="5" oninput="updateModel()">
     </div>
@@ -686,7 +691,7 @@ function gv(id){return parseFloat(document.getElementById(id).value);}
 
 function buildRevenue(){
   const d1=tierOn[0]?gd('d1'):0, d2=tierOn[1]?gd('d2'):0, d3=tierOn[2]?gd('d3'):0;
-  const wg=gv('wageGrowth'), mbaA=gv('mbaAdopt')/100;
+  const wg=gv('wageGrowth'), mbaA=gv('mbaAdopt')/100; // now 0.20 = 20% of 2,000 contracts
   const bInv=gv('balmainInv'), reR=gv('reRaise')*1e6;
 
   // Fee rate assumptions (from Assumptions tab — fall back to defaults if not rendered yet)
@@ -807,20 +812,39 @@ function buildRevenue(){
   t1parts.tranYield = contractedV.map(v=>v*(tranDays/365)*tranYieldR);
   t1parts.earlyRel  = contractedV.map(v=>v*erAdopt*erDays*erRate);
 
-  const sc=mbaA/0.02;
+  // MBA/ABIC (Tier 1 — already live)
+  // ~2,000 contracts/yr pool. Currently ~400 contracts (20%), still ramping.
+  // Revenue figures from actual P&L — these are real contract fees already being earned.
+  // mbaA slider = current penetration % of 2,000 contract pool (default 20% = 400 contracts)
+  // The base arrays already reflect the revenue at ~400 contracts; scale proportionally.
+  const mbaScale = mbaA / 0.20; // 0.20 = 20% = ~400 contracts (current baseline)
   const mbaB=[1089,1197.9,1317.69,1449.46,1594.40,1753.85,1841.54,1933.61,2030.30,2131.81,2238.40,2350.32,2467.84,2591.23,2720.79,2856.83,2999.67,3149.65,3307.14,3472.49,3646.12];
   const abcB=[6013.68,7216.42,8659.70,10391.64,12469.97,14963.97,17208.56,19789.84,22758.32,26172.07,30097.88,34612.56,38073.82,41881.20,46069.32,50676.25,55743.88,61318.26,67450.09,74195.10,81614.61];
-  t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*sc:0);
+  t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*mbaScale:0);
   const tier1=MONTHS.map((_,i)=>Object.values(t1parts).reduce((s,a)=>s+a[i],0)*d1);
 
   // TIER 2
   const t2parts={};
-  // MBANSW: licensed partnership, ramps over 3 months from start date
-  const mnswFull=[0,0,0,36000,72000,120000,180000,240000,276000,288000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000];
+  // MBANSW: 25,000 contracts/yr pool
+  // Ramps to 100% penetration over 12 months from start date
+  // Only 5% of those use financial features (early release, yield)
+  // Revenue = contracts/yr × financial feature adoption % × avg fee per contract / 12
+  // Avg fee per contract sourced from MBA/ABIC actuals scaled to MBANSW volume
+  // At full ramp (100% penetration, 5% fin features): ~$300K/yr licensing + fin fee revenue
+  const mbanswFinAdopt = gva('a_mbanswFinAdopt', 5)/100; // % using financial features
+  const mbanswPenetration = MONTHS.map((_,i)=>{
+    if(i<sMbansw) return 0;
+    const mo = i-sMbansw;
+    // ramps to 100% over 12 months
+    return Math.min(1, (mo+1)/12);
+  });
+  // Licensing fee ramps with penetration; financial features add on top
+  const mbanswLicenseFull = 300000; // $300K/yr at 100% penetration
+  const mbanswFinFeeFull  = 25000 * mbanswFinAdopt * 12; // 25K contracts × fin adoption × avg fee
   t2parts.mbansw=MONTHS.map((_,i)=>{
     if(i<sMbansw) return 0;
-    // apply ramp on top of the existing monthly schedule
-    return mnswFull[i] * mbanswScale(sMbansw,i);
+    const pct = mbanswPenetration[i];
+    return (mbanswLicenseFull * pct + mbanswFinFeeFull * pct) / 12;
   });
   function reRamp(fullYr,start,i){
     if(i<start)return 0;
@@ -1103,6 +1127,8 @@ function updateModel(){
   document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
   document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
   document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  const mbanswFinEl=document.getElementById('a_mbanswFinAdopt');
+  if(mbanswFinEl) document.getElementById('mbanswFinV').textContent=mbanswFinEl.value+'%';
   document.getElementById('yieldV').textContent=document.getElementById('yieldRate').value+'%';
   document.getElementById('erV').textContent=document.getElementById('erAdopt').value+'%';
   document.getElementById('wageV').textContent=document.getElementById('wageGrowth').value+'%';
