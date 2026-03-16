@@ -1124,6 +1124,8 @@ function drawCharts(d){
   });
 
   if(window.cCapOut) window.cCapOut.destroy();
+}
+
 function buildSummary(d){
   // Actuals: FY2026 H1 = Jul-25 to Feb-26 (all 8 actual months)
   const actTotRev = ACTUALS.revenue.reduce((s,v)=>s+v,0);
