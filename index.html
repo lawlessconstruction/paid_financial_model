@@ -31,44 +31,80 @@ header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex
 
 /* ── PRINT STYLES ─────────────────────────────────────────── */
 @media print {
-  @page { size: A4 landscape; margin: 12mm; }
+  @page { size: A4 landscape; margin: 8mm; }
 
   /* Hide everything except print content */
   header, aside, .kpi-grid, .view-tabs, .charts-grid,
   #chartCapitalIn, .chart-card, .spills, .print-btn,
-  #view-timing, #view-assumptions, #view-bs-kpis { display:none !important; }
+  #view-timing, #view-assumptions { display:none !important; }
 
-  body { background: white !important; color: #111 !important; font-size: 9pt; }
+  body { background: white !important; color: #111 !important; font-size: 8pt; }
   .main { display: block !important; }
   .content { padding: 0 !important; overflow: visible !important; }
 
-  /* Show all three report views when printing */
+  /* Show all four report views when printing */
   #view-summary, #view-pl, #view-cashflow, #view-bs { display: block !important; }
 
   /* Page breaks between sections */
-  #view-pl    { page-break-before: always; }
+  #view-pl       { page-break-before: always; }
   #view-cashflow { page-break-before: always; }
-  #view-bs    { page-break-before: always; }
+  #view-bs       { page-break-before: always; }
 
-  /* Section titles */
-  .tbl-hdr { background: #f3f4f6 !important; color: #111 !important; border-bottom: 1px solid #ccc !important; }
+  /* Critical: allow tables to overflow and scale down to fit */
+  .tbl-wrap {
+    overflow: visible !important;
+    width: 100% !important;
+  }
 
-  /* Table styles */
-  .tbl-card { border: 1px solid #ccc !important; border-radius: 0 !important; }
-  .tbl-wrap { overflow: visible !important; }
-  table { width: 100% !important; font-size: 7pt !important; }
-  th { color: #666 !important; background: #f9fafb !important; border-bottom: 1px solid #ddd !important; padding: 4px 6px !important; }
-  td { color: #111 !important; border-bottom: 1px solid #eee !important; padding: 3px 6px !important; }
-  td:first-child { background: white !important; }
+  .tbl-card {
+    border: 1px solid #ccc !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+    width: 100% !important;
+  }
+
+  /* Scale table to fit page width — key fix */
+  table {
+    width: 100% !important;
+    table-layout: auto !important;
+    font-size: 5.5pt !important;
+    border-collapse: collapse !important;
+    transform-origin: top left;
+  }
+
+  /* Shrink columns to fit */
+  th, td {
+    padding: 2px 3px !important;
+    white-space: nowrap !important;
+    min-width: 0 !important;
+  }
+
+  th:first-child, td:first-child {
+    position: static !important; /* remove sticky for print */
+    min-width: 80px !important;
+    max-width: 100px !important;
+    white-space: normal !important;
+    font-size: 5.5pt !important;
+  }
+
+  /* Colours */
+  .tbl-hdr { background: #f3f4f6 !important; color: #111 !important; border-bottom: 1px solid #ccc !important; font-size: 9pt !important; padding: 6px 10px !important; }
+  th { color: #555 !important; background: #f9fafb !important; border-bottom: 1px solid #ddd !important; }
+  td { color: #111 !important; border-bottom: 1px solid #eee !important; }
+  td:first-child { background: white !important; color: #444 !important; }
   th:first-child { background: #f9fafb !important; }
   tr.net td { color: #059669 !important; background: #f0fdf4 !important; }
-  tr.ttl td { font-weight: 700 !important; color: #111 !important; }
-  tr.sec td { color: #6b7280 !important; background: #f9fafb !important; }
+  tr.ttl td { font-weight: 700 !important; background: #f9fafb !important; }
+  tr.sec td { color: #6b7280 !important; background: #f3f4f6 !important; font-size: 5pt !important; letter-spacing: 0 !important; }
   .neg { color: #dc2626 !important; }
   .pos { color: #059669 !important; }
 
+  /* Actuals columns italic */
+  td[style*="font-style:italic"], th[style*="font-style:italic"] { color: #888 !important; }
+
   /* Print header */
   .print-header { display: block !important; }
+  .print-header { margin-bottom: 10px !important; padding-bottom: 6px !important; border-bottom: 2px solid #111 !important; }
 }
 
 .main{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 68px);}
@@ -1581,9 +1617,32 @@ function printReports(){
   const el = document.getElementById('printDate');
   if(el) el.textContent = d.toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'});
 
-  // Make sure all three report views are visible for printing
-  // (print CSS will show them all regardless of current tab)
+  // Auto-scale each table to fit A4 landscape width (~260mm = ~980px at 96dpi)
+  // We measure the table's natural width and scale it down to fit
+  const printWidth = 980;
+  const tables = document.querySelectorAll('.tbl-wrap table');
+  const origStyles = [];
+  tables.forEach(t => {
+    origStyles.push(t.style.cssText);
+    const naturalWidth = t.scrollWidth;
+    if(naturalWidth > printWidth){
+      const scale = printWidth / naturalWidth;
+      t.style.transform = `scale(${scale})`;
+      t.style.transformOrigin = 'top left';
+      t.style.width = (naturalWidth) + 'px';
+      // Compensate container height so content doesn't overlap
+      t.closest('.tbl-wrap').style.height = Math.ceil(t.scrollHeight * scale) + 'px';
+    }
+  });
+
   window.print();
+
+  // Restore original styles after print dialog closes
+  tables.forEach((t,i) => {
+    t.style.cssText = origStyles[i];
+    const wrap = t.closest('.tbl-wrap');
+    if(wrap) wrap.style.height = '';
+  });
 }
 
 // Init
