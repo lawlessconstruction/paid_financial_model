@@ -945,7 +945,19 @@ function buildRevenue(){
     return 0;
   });
 
-  const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i]);
+  // R&D Grant — $600K other income in Sep-26 (month 5), shows in revenue
+  const rdGrant = MONTHS.map((_,i) => i===5 ? 600000 : 0);
+
+  // Loan repayments and other cash movements
+  const loanRepayments = MONTHS.map((_,i) => {
+    let out = 0;
+    if(i===3)  out += 60000;   // Convertible note + interest — Jul-26
+    if(i===5)  out += 600000;  // AMAL loan repayment — Sep-26 (offsets grant)
+    if(i===16) out += 420000;  // Secured loan + interest — Aug-27
+    return out;
+  });
+
+  const cashFlow=MONTHS.map((_,i)=>ebitda[i] + equityIn[i] + rdGrant[i] - loanRepayments[i]);
   const cash=[];let bal=388189;
   for(let i=0;i<N;i++){bal+=cashFlow[i];cash.push(bal);}
 
@@ -971,7 +983,7 @@ function buildRevenue(){
     {name:'$2B Pipeline',tier:3,arr:t3parts.pipe2b.map(v=>v*d3)},
   ];
 
-  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn};
+  return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn,rdGrant,loanRepayments};
 }
 
 function fmt(v){
@@ -1032,19 +1044,57 @@ function drawCharts(d){
     return null;
   });
 
+  // Loan repayment bars — shown as negative on a separate dataset (red)
+  const repaymentBars = allLabels.map((_,i)=>{
+    const fi = i - NA;
+    if(fi === 3)  return -60000;   // Convertible note Jul-26
+    if(fi === 5)  return -600000;  // AMAL repayment Sep-26
+    if(fi === 16) return -420000;  // Secured loan Aug-27
+    return null;
+  });
+
+  // Grant bar — shown as positive green on secondary axis
+  const grantBars = allLabels.map((_,i)=>{
+    const fi = i - NA;
+    if(fi === 5) return 600000;  // R&D Grant Sep-26
+    return null;
+  });
+
   if(cCash)cCash.destroy();
   cCash=new Chart(document.getElementById('chartCash'),{
     type:'bar',
     data:{
       labels:allLabels,
       datasets:[
-        // Equity raise bars — secondary Y axis
+        // Equity raise bars
         {
           type:'bar',
           label:'Equity Raised',
           data:equityBars,
           backgroundColor:'rgba(52,211,153,0.75)',
           borderColor:'rgba(52,211,153,1)',
+          borderWidth:1,
+          yAxisID:'yEquity',
+          order:2,
+        },
+        // R&D Grant bar
+        {
+          type:'bar',
+          label:'R&D Grant',
+          data:grantBars,
+          backgroundColor:'rgba(251,191,36,0.75)',
+          borderColor:'rgba(251,191,36,1)',
+          borderWidth:1,
+          yAxisID:'yEquity',
+          order:2,
+        },
+        // Loan repayment bars (negative)
+        {
+          type:'bar',
+          label:'Loan Repayments',
+          data:repaymentBars,
+          backgroundColor:'rgba(239,68,68,0.65)',
+          borderColor:'rgba(239,68,68,1)',
           borderWidth:1,
           yAxisID:'yEquity',
           order:2,
@@ -1099,11 +1149,11 @@ function drawCharts(d){
         },
         yEquity:{
           position:'right',
-          title:{display:true,text:'Equity Raised',color:'rgba(52,211,153,0.7)',font:{size:9,family:'DM Mono'}},
-          ticks:{color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'},
-            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},
+          title:{display:true,text:'Capital Events ($)',color:'rgba(148,163,184,0.6)',font:{size:9,family:'DM Mono'}},
+          ticks:{color:'rgba(148,163,184,0.5)',font:{size:9,family:'DM Mono'},
+            callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(Math.abs(v)/1e3).toFixed(0)+'K'+(v<0?'':''): '$'+v},
           grid:{drawOnChartArea:false},
-          min:0,
+          min:-maxEquity*0.5,
           max:maxEquity,
         }
       }
@@ -1264,6 +1314,8 @@ function updateModel(){
     {n:'Tier 2',         a:d.tier2,    act:PL_ACTUALS.tier2},
     {n:'Tier 3',         a:d.tier3,    act:PL_ACTUALS.tier3},
     {ttl:'Total Revenue',a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {sec:'Other Income'},
+    {n:'R&D Grant',      a:d.rdGrant,  act:Array(NA).fill(0)},
     {sec:'Costs'},
     {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
     {n:'Opex & Wages',   a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
@@ -1271,12 +1323,14 @@ function updateModel(){
     {net:'EBITDA',       a:d.ebitda,   act:PL_ACTUALS.ebitda},
   ]);
   buildMonthly('tblCash',[
-    {n:'Revenue',        a:d.totalRev, act:PL_ACTUALS.totalRev},
-    {n:'Equity Raised',  a:d.equityIn, act:Array(NA).fill(0)},
-    {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
-    {n:'Expenses',       a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
-    {net:'Net Cashflow', a:d.cashFlow, act:PL_ACTUALS.cashFlow},
-    {net:'Cash Balance', a:d.cash,     act:PL_ACTUALS.cash},
+    {n:'Revenue',           a:d.totalRev,       act:PL_ACTUALS.totalRev},
+    {n:'R&D Grant',         a:d.rdGrant,        act:Array(NA).fill(0)},
+    {n:'Equity Raised',     a:d.equityIn,       act:Array(NA).fill(0)},
+    {n:'Cost of Sales',     a:d.cosB,           act:PL_ACTUALS.cosB,      neg:true},
+    {n:'Expenses',          a:d.exp,            act:PL_ACTUALS.exp,       neg:true},
+    {n:'Loan Repayments',   a:d.loanRepayments, act:Array(NA).fill(0),    neg:true},
+    {net:'Net Cashflow',    a:d.cashFlow,       act:PL_ACTUALS.cashFlow},
+    {net:'Cash Balance',    a:d.cash,           act:PL_ACTUALS.cash},
   ]);
   buildTiming(d);
   buildBS(d);
