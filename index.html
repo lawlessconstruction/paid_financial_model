@@ -989,21 +989,23 @@ function buildMonthly(id,rows){
     h+=`<tr class="${r.net?'net':r.ttl?'ttl':''}"><td>${r.n||r.net||r.ttl}</td>`;
     // Actuals columns (from r.act array if provided, else zeros)
     ACT_MONTHS.forEach((_,i)=>{
-      const raw = r.act ? r.act[i] : 0;
+      const raw = (r.act && r.act[i]!==undefined) ? r.act[i] : 0;
       const v = r.neg ? -raw : raw;
       const cl = r.net?(v<0?'neg':'pos'):(r.neg&&raw>0?'neg':'');
       h+=`<td class="${cl}" style="color:var(--text3);font-style:italic">${fmts(v)}</td>`;
     });
     // Forecast columns
     FORE_MONTHS.forEach((_,i)=>{
-      const raw=r.a[i]; const v=r.neg?-raw:raw;
+      const raw = (r.a && r.a[i]!==undefined) ? r.a[i] : 0;
+      const v=r.neg?-raw:raw;
       const cl=r.net?(v<0?'neg':'pos'):(r.neg&&raw>0?'neg':'');
       h+=`<td class="${cl}">${fmts(v)}</td>`;
     });
     h+='</tr>';
   }
   h+='</tbody>';
-  document.getElementById(id).innerHTML=h;
+  const el = document.getElementById(id);
+  if(el) el.innerHTML=h;
 }
 
 // Map actuals arrays to table rows for P&L and cashflow
