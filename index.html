@@ -265,6 +265,16 @@ tr.net td:first-child{color:var(--t1);}
       <div class="hint">~400 contracts now (20%) — ramping. Scale = contracts being processed.</div>
     </div>
     <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">Financial features — current uptake</span><span class="sl-val" id="mbaFinAdoptV">1%</span></div>
+      <input type="range" id="a_mbaFinAdopt" min="0" max="10" value="1" step="0.5" oninput="updateModel()">
+      <div class="hint">% of contracts using subcon fee / yield features. Avg contract $2M.</div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">Financial features — target uptake</span><span class="sl-val" id="mbaFinTargetV">5%</span></div>
+      <input type="range" id="a_mbaFinTarget" min="1" max="20" value="5" step="0.5" oninput="updateModel()">
+      <div class="hint">Target % reached over ~24 months from start.</div>
+    </div>
+    <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d1v">100%</span></div>
       <input type="range" id="d1" min="50" max="100" value="100" step="5" oninput="updateModel()">
     </div>
@@ -336,7 +346,7 @@ tr.net td:first-child{color:var(--t1);}
         <select class="proj-start" id="s_alceon" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">AMAL ($9B float)</span><span class="proj-vol">0.2% spread</span>
         <select class="proj-start" id="s_amal" onchange="updateModel()"></select></div>
-      <div class="proj-row"><span class="proj-name">$2B pipeline</span><span class="proj-vol">Over 12 months</span>
+      <div class="proj-row"><span class="proj-name">LogiSpace Pipeline</span><span class="proj-vol">$2B over 12mo</span>
         <select class="proj-start" id="s_pipe2b" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
@@ -517,9 +527,9 @@ tr.net td:first-child{color:var(--t1);}
         </div>
 
         <div class="ass-card">
-          <div class="ass-card-label">Retention Yield</div>
-          <div class="ass-mechanic">On every claim, Paid withholds 10% until the running retention balance reaches 5% of the total contract value — then withholding stops. The pooled retention earns yield while it sits in the system. Example: on a $50M contract, retention caps at $2.5M after $25M of claims.</div>
-          <div class="ass-formula">Withheld = 10% per claim until balance = Contract Value × Retention Cap %<br>Yield = Running Balance × Yield Rate ÷ 12</div>
+          <div class="ass-card-label">Retention Yield — Dual Pool</div>
+          <div class="ass-mechanic">Two separate retention pools both sit in Paid's system and earn yield. <strong style="color:var(--text)">Pool 1 (Funder → Builder):</strong> when a funder releases a progress claim, up to 5% of total contract value is withheld from the builder. <strong style="color:var(--text)">Pool 2 (Builder → Subcontractor):</strong> when the builder pays subs, a separate 5% is withheld. Both pools accrue at 10% per claim until each hits its 5% cap. Combined, this means up to 10% of contract value sits in Paid earning yield.</div>
+          <div class="ass-formula">Pool 1: Withheld = 10% per funder claim until balance = Contract Value × 5%<br>Pool 2: Withheld = 10% per sub claim until balance = Sub Contract Value × 5%<br>Yield = (Pool 1 + Pool 2) × Yield Rate ÷ 12</div>
           <div class="ass-controls">
             <div class="ass-row"><span>Withholding rate per claim</span><span class="ass-val" id="av_retWith">10%</span></div>
             <input type="range" id="a_retWith" min="5" max="15" value="10" step="1" oninput="updateModel()">
@@ -908,36 +918,90 @@ function buildRevenue(){
   t1parts.platform = contractedV.map(v=>v*platFee);
   t1parts.subcon   = contractedV.map(v=>v*subAlloc*subFee);
 
-  // CORRECT RETENTION MECHANICS:
-  // Each month: withhold retWith% of (claim × subAlloc) UNTIL running balance hits retCap% of contract value
-  // Contract value proxy: total volume on platform so far × retCap gives the cap
-  // We track a running retention balance and stop accruing when cap is hit per contract
-  // Simplified: use cumulative contracted volume as proxy for "total contract value"
-  let retBal = 0;
+  // DUAL RETENTION POOLS — both earn yield for Paid:
+  //
+  // Pool 1: Funder → Builder retention
+  //   When funder pays builder, up to 5% of total contract value is withheld
+  //   Withheld at retWith% per claim until balance = retCap% of contract value
+  //   Applied to full claim value (contractedV)
+  //
+  // Pool 2: Builder → Subcontractor retention
+  //   When builder pays subcontractor, separate 5% withheld
+  //   Applied to subcontractor portion only (contractedV × subAlloc)
+  //
+  // Both pools sit in Paid's system and earn yield at retYieldR p.a.
+
+  let retBalBuilder = 0;   // Pool 1: funder → builder
+  let retBalSubcon  = 0;   // Pool 2: builder → subcontractor
   let cumContracted = 0;
+
   t1parts.retYield = MONTHS.map((_,i)=>{
-    const claimVal = contractedV[i] * subAlloc;
-    cumContracted += contractedV[i];
-    const retCapAmt = cumContracted * retCap;
-    const spaceLeft = Math.max(0, retCapAmt - retBal);
-    const withheld  = Math.min(claimVal * retWith, spaceLeft);
-    retBal += withheld;
-    return retBal * retYieldR / 12;
+    const fullClaim  = contractedV[i];               // total funder payment
+    const subconClaim= contractedV[i] * subAlloc;    // subcontractor portion
+
+    cumContracted += fullClaim;
+    const retCapAmt = cumContracted * retCap;        // 5% of cumulative contract value
+
+    // Pool 1: funder → builder (on full claim)
+    const space1    = Math.max(0, retCapAmt - retBalBuilder);
+    const withheld1 = Math.min(fullClaim * retWith, space1);
+    retBalBuilder  += withheld1;
+
+    // Pool 2: builder → subcontractor (on subcon portion, separate cap)
+    const space2    = Math.max(0, retCapAmt * subAlloc - retBalSubcon);
+    const withheld2 = Math.min(subconClaim * retWith, space2);
+    retBalSubcon   += withheld2;
+
+    // Combined yield on both pools
+    return (retBalBuilder + retBalSubcon) * retYieldR / 12;
   });
 
   t1parts.tranYield = contractedV.map(v=>v*(tranDays/365)*tranYieldR);
   // Early release ramps from 0% as feature comes online — reaches full erAdopt by month 9
   t1parts.earlyRel  = MONTHS.map((_,i)=>contractedV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
 
-  // MBA/ABIC (Tier 1 — already live)
-  // ~2,000 contracts/yr pool. Currently ~400 contracts (20%), still ramping.
-  // Revenue figures from actual P&L — these are real contract fees already being earned.
-  // mbaA slider = current penetration % of 2,000 contract pool (default 20% = 400 contracts)
-  // The base arrays already reflect the revenue at ~400 contracts; scale proportionally.
-  const mbaScale = mbaA / 0.20; // 0.20 = 20% = ~400 contracts (current baseline)
+  // MBA/ABIC contract fees (from actual P&L — real revenue already earned)
+  // ~2,000 contracts/yr pool, avg $179/contract incl GST
+  // mbaA slider = penetration % of pool (default 20% = ~400 contracts)
+  const mbaScale = mbaA / 0.20;
   const mbaB=[1089,1197.9,1317.69,1449.46,1594.40,1753.85,1841.54,1933.61,2030.30,2131.81,2238.40,2350.32,2467.84,2591.23,2720.79,2856.83,2999.67,3149.65,3307.14,3472.49,3646.12];
   const abcB=[6013.68,7216.42,8659.70,10391.64,12469.97,14963.97,17208.56,19789.84,22758.32,26172.07,30097.88,34612.56,38073.82,41881.20,46069.32,50676.25,55743.88,61318.26,67450.09,74195.10,81614.61];
   t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*mbaScale:0);
+
+  // MBA/ABIC FINANCIAL FEATURES
+  // Avg contract value = $2M. Currently 1% uptake, ramping to 5% over ~24 months.
+  // Volume on financial features = contracts active × avg contract value × monthly draw rate
+  // Assume monthly draw = contract value / 12 (spread evenly)
+  const mbaFinAdopt   = gva('a_mbaFinAdopt', 1)/100;   // current: 1%
+  const mbaFinTarget  = gva('a_mbaFinTarget', 5)/100;  // target: 5% over 24 months
+  const mbaAvgContract = 2e6;                           // $2M avg contract value
+  const mbaContractsActive = MONTHS.map((_,i)=>{
+    if(i<sMba) return 0;
+    // Contracts penetration ramps with mbaA (already modelled)
+    // Financial feature adoption ramps from mbaFinAdopt to mbaFinTarget over 24 months
+    const mo = i - sMba;
+    const finPct = Math.min(mbaFinTarget, mbaFinAdopt + (mbaFinTarget - mbaFinAdopt) * mo / 24);
+    // Active contracts using financial features = total pool × penetration × fin adoption
+    return 2000 * mbaA * finPct;
+  });
+  // Monthly construction volume flowing through financial features
+  const mbaFinVol = mbaContractsActive.map(n => n * mbaAvgContract / 12);
+
+  // Apply same mechanics as Tier 1: subcon fee + dual retention yield + transitory yield
+  t1parts.mbaFinSubcon = mbaFinVol.map(v=>v*subAlloc*subFee);
+  t1parts.mbaFinTrans  = mbaFinVol.map(v=>v*(tranDays/365)*tranYieldR);
+
+  // Dual retention on MBA/ABIC financial features users
+  let mbaRetBal1=0, mbaRetBal2=0, mbaCumVol=0;
+  t1parts.mbaFinRet = MONTHS.map((_,i)=>{
+    const fc=mbaFinVol[i], sc=mbaFinVol[i]*subAlloc;
+    mbaCumVol+=fc;
+    const cap=mbaCumVol*retCap;
+    const s1=Math.max(0,cap-mbaRetBal1); mbaRetBal1+=Math.min(fc*retWith,s1);
+    const s2=Math.max(0,cap*subAlloc-mbaRetBal2); mbaRetBal2+=Math.min(sc*retWith,s2);
+    return (mbaRetBal1+mbaRetBal2)*retYieldR/12;
+  });
+
   const tier1=MONTHS.map((_,i)=>Object.values(t1parts).reduce((s,a)=>s+a[i],0)*d1);
 
   // TIER 2
@@ -975,18 +1039,62 @@ function buildRevenue(){
   // Note: RE platform raise is equity, not revenue — handled in cashflow/capital events separately
   const tier2=MONTHS.map((_,i)=>Object.values(t2parts).reduce((s,a)=>s+a[i],0)*d2);
 
-  // TIER 3
+  // TIER 3 — all pipeline funders mirror Tier 1 mechanics EXCEPT upfront platform fee
+  // (platform fee 0.2% is Trilogy/Remara specific for now — toggle in Assumptions to apply broadly)
+  //
+  // Each funder gets: subcon fee + dual retention yield + transitory yield + early release
+  // $2B pipeline renamed LogiSpace Pipeline — it's LogiSpace's broader work pipeline
+
   const t3parts={};
-  const pipV=MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
-  t3parts.pipSubcon  =pipV.map(v=>v*subAlloc*subFee);
-  t3parts.pipPlatform=pipV.map((v)=>platAll?v*platFee:0);
+
+  // Total pipeline volume across all funders each month
+  const pipV = MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
+
+  // Balmain & Alceon: ongoing lending volumes with T3 ramp
   const bScale=bInv/5;
-  // Balmain & Alceon: T3 ramp on top of any configured volume ramp
-  t3parts.balmain=MONTHS.map((_,i)=>i<sBa?0:balmainVol*platFee*bScale*t3Scale(sBa,i)*rampAct(sBa,balmainRamp,i));
-  t3parts.alceon =MONTHS.map((_,i)=>i<sAl?0:alceonVol*platFee*t3Scale(sAl,i)*rampAct(sAl,alceonRamp,i));
-  // AMAL: T3 ramp — large relationship, slow to engage
-  t3parts.amal   =MONTHS.map((_,i)=>i<sAm?0:9e9*amalPct*amalSpread/12*t3Scale(sAm,i));
-  t3parts.pipe2b =p2bV.map(v=>v*subAlloc*subFee);
+  const balmainMonthly = MONTHS.map((_,i)=>i<sBa?0:balmainVol*bScale*t3Scale(sBa,i)*rampAct(sBa,balmainRamp,i));
+  const alceonMonthly  = MONTHS.map((_,i)=>i<sAl?0:alceonVol*t3Scale(sAl,i)*rampAct(sAl,alceonRamp,i));
+  const lsPipeMonthly  = p2bV; // LogiSpace pipeline
+  const allPipV = MONTHS.map((_,i)=>pipV[i]+balmainMonthly[i]+alceonMonthly[i]+lsPipeMonthly[i]);
+
+  // 1. Subcontractor security fee (same as T1)
+  t3parts.subcon = allPipV.map(v=>v*subAlloc*subFee);
+
+  // 2. Platform fee on pipeline — only if investor toggles it on
+  t3parts.platform = allPipV.map(v=>platAll?v*platFee:0);
+
+  // 3. DUAL RETENTION YIELD — identical mechanics to Tier 1
+  //    Pool 1: funder → builder (on full claim value)
+  //    Pool 2: builder → subcontractor (on subcon portion)
+  let t3RetBalBuilder = 0;
+  let t3RetBalSubcon  = 0;
+  let t3CumVol = 0;
+  t3parts.retYield = MONTHS.map((_,i)=>{
+    const fullClaim   = allPipV[i];
+    const subconClaim = allPipV[i] * subAlloc;
+    t3CumVol += fullClaim;
+    const retCapAmt = t3CumVol * retCap;
+
+    const space1    = Math.max(0, retCapAmt - t3RetBalBuilder);
+    const withheld1 = Math.min(fullClaim * retWith, space1);
+    t3RetBalBuilder += withheld1;
+
+    const space2    = Math.max(0, retCapAmt * subAlloc - t3RetBalSubcon);
+    const withheld2 = Math.min(subconClaim * retWith, space2);
+    t3RetBalSubcon  += withheld2;
+
+    return (t3RetBalBuilder + t3RetBalSubcon) * retYieldR / 12;
+  });
+
+  // 4. TRANSITORY FUNDS YIELD — funds sit in system avg tranDays before leaving
+  t3parts.tranYield = allPipV.map(v=>v*(tranDays/365)*tranYieldR);
+
+  // 5. EARLY RELEASE FEES — same ramp profile as T1 (feature rolling out)
+  t3parts.earlyRel = MONTHS.map((_,i)=>allPipV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
+
+  // 6. AMAL — yield spread on float (different mechanic — not a construction funder)
+  t3parts.amal = MONTHS.map((_,i)=>i<sAm?0:9e9*amalPct*amalSpread/12*t3Scale(sAm,i));
+
   const tier3=MONTHS.map((_,i)=>Object.values(t3parts).reduce((s,a)=>s+a[i],0)*d3);
 
   const totalRev=MONTHS.map((_,i)=>tier1[i]+tier2[i]+tier3[i]);
@@ -1082,10 +1190,10 @@ function buildRevenue(){
     {name:'Plenary #1',tier:3,arr:p1V.map(v=>v*subAlloc*subFee*d3)},
     {name:'Plenary #2',tier:3,arr:p2V.map(v=>v*subAlloc*subFee*d3)},
     {name:'Plenary #3',tier:3,arr:p3V.map(v=>v*subAlloc*subFee*d3)},
-    {name:'Balmain',tier:3,arr:t3parts.balmain.map(v=>v*d3)},
-    {name:'Alceon',tier:3,arr:t3parts.alceon.map(v=>v*d3)},
+    {name:'Balmain',tier:3,arr:balmainMonthly.map(v=>v*subAlloc*subFee*d3)},
+    {name:'Alceon',tier:3,arr:alceonMonthly.map(v=>v*subAlloc*subFee*d3)},
     {name:'AMAL',tier:3,arr:t3parts.amal.map(v=>v*d3)},
-    {name:'$2B Pipeline',tier:3,arr:t3parts.pipe2b.map(v=>v*d3)},
+    {name:'LogiSpace Pipeline ($2B)',tier:3,arr:lsPipeMonthly.map(v=>v*subAlloc*subFee*d3)},
   ];
 
   return{tier1,tier2,tier3,totalRev,gp,ebitda,exp,cosB,cashFlow,cash,projects,t1parts,t2parts,t3parts,d1,d2,d3,equityIn,rdGrant,loanRepayments};
@@ -1354,6 +1462,10 @@ function updateModel(){
   document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
   document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
   document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  const mbaFinAdoptEl=document.getElementById('a_mbaFinAdopt');
+  if(mbaFinAdoptEl) document.getElementById('mbaFinAdoptV').textContent=mbaFinAdoptEl.value+'%';
+  const mbaFinTargetEl=document.getElementById('a_mbaFinTarget');
+  if(mbaFinTargetEl) document.getElementById('mbaFinTargetV').textContent=mbaFinTargetEl.value+'%';
   const mbanswFinEl=document.getElementById('a_mbanswFinAdopt');
   if(mbanswFinEl) document.getElementById('mbanswFinV').textContent=mbanswFinEl.value+'%';
   document.getElementById('yieldV').textContent=document.getElementById('yieldRate').value+'%';
