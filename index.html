@@ -149,23 +149,15 @@ tr.net td:first-child{color:var(--t1);}
     <span class="tbadge" style="background:rgba(16,185,129,.15);color:var(--t1)">Certain</span>
     <div class="toggle on" id="tog1" onclick="event.stopPropagation();toggleTier(1)"></div>
   </div>
-  <div class="tier-body open" id="tbody1">
+<div class="tier-body open" id="tbody1">
     <div class="tier-note">Already generating actual revenue. Platform fee 0.2%, subcon fee 0.3%×80%, yield on funds, MBA/ABIC contract fees.</div>
     <div class="proj-list">
       <div class="proj-row"><span class="proj-name">Trilogy</span><span class="proj-vol">$50M/qtr</span>
-        <select class="proj-start" id="s_trilogy" onchange="updateModel()">
-          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="2">Jun-26</option>
-          <option value="3">Jul-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option>
-        </select></div>
+        <select class="proj-start" id="s_trilogy" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Remara</span><span class="proj-vol">$50M/qtr</span>
-        <select class="proj-start" id="s_remara" onchange="updateModel()">
-          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="2">Jun-26</option>
-          <option value="3">Jul-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option>
-        </select></div>
+        <select class="proj-start" id="s_remara" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">MBA / ABIC fees</span><span class="proj-vol">Volume ramp</span>
-        <select class="proj-start" id="s_mba" onchange="updateModel()">
-          <option value="0" selected>Apr-26</option><option value="1">May-26</option><option value="3">Jul-26</option><option value="6">Oct-26</option>
-        </select></div>
+        <select class="proj-start" id="s_mba" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
       <div class="sl-row"><span class="sl-label">MBA adoption rate</span><span class="sl-val" id="mbaAdoptV">2%</span></div>
@@ -191,25 +183,13 @@ tr.net td:first-child{color:var(--t1);}
     <div class="tier-note">Signed contracts not yet in actual revenue. MBANSW licensing starts Jul-26. Paid.RE agencies under contract.</div>
     <div class="proj-list">
       <div class="proj-row"><span class="proj-name">MBANSW Licensing</span><span class="proj-vol">$300K/yr</span>
-        <select class="proj-start" id="s_mbansw" onchange="updateModel()">
-          <option value="3" selected>Jul-26</option><option value="4">Aug-26</option><option value="5">Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option>
-        </select></div>
+        <select class="proj-start" id="s_mbansw" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Paid.RE — Jellis Craig</span><span class="proj-vol">$400K/yr</span>
-        <select class="proj-start" id="s_jc" onchange="updateModel()">
-          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
-          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
-        </select></div>
+        <select class="proj-start" id="s_jc" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Paid.RE — Marshall White</span><span class="proj-vol">$167K/yr</span>
-        <select class="proj-start" id="s_mw" onchange="updateModel()">
-          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
-          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
-        </select></div>
+        <select class="proj-start" id="s_mw" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Paid.RE — REIV</span><span class="proj-vol">$193K/yr</span>
-        <select class="proj-start" id="s_reiv" onchange="updateModel()">
-          <option value="9">Jan-27</option><option value="10">Feb-27</option><option value="11">Mar-27</option>
-          <option value="12" selected>Apr-27</option><option value="13">May-27</option><option value="15">Jul-27</option>
-        </select></div>
+        <select class="proj-start" id="s_reiv" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d2v">90%</span></div>
@@ -230,65 +210,29 @@ tr.net td:first-child{color:var(--t1);}
     <div class="tier-note">Named projects &amp; signed-not-yet-onboarded. Push start dates right to stress-test timing risk.</div>
     <div class="proj-list">
       <div class="proj-row"><span class="proj-name">Avari</span><span class="proj-vol">$30M · 10mo</span>
-        <select class="proj-start" id="s_avari" onchange="updateModel()">
-          <option value="2">Jun-26</option><option value="3" selected>Jul-26</option><option value="4">Aug-26</option>
-          <option value="5">Sep-26</option><option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_avari" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Moda</span><span class="proj-vol">$100M · 10mo</span>
-        <select class="proj-start" id="s_moda" onchange="updateModel()">
-          <option value="3">Jul-26</option><option value="4">Aug-26</option><option value="5">Sep-26</option>
-          <option value="6" selected>Oct-26</option><option value="7">Nov-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_moda" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Radius</span><span class="proj-vol">$25M/qtr</span>
-        <select class="proj-start" id="s_radius" onchange="updateModel()">
-          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_radius" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Portside</span><span class="proj-vol">$20M/qtr</span>
-        <select class="proj-start" id="s_portside" onchange="updateModel()">
-          <option value="3">Jul-26</option><option value="4">Aug-26</option><option value="5" selected>Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_portside" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">LogiSpace</span><span class="proj-vol">$150M · 10mo</span>
-        <select class="proj-start" id="s_logispace" onchange="updateModel()">
-          <option value="4">Aug-26</option><option value="5">Sep-26</option><option value="6" selected>Oct-26</option>
-          <option value="7">Nov-26</option><option value="8">Dec-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_logispace" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Plenary #1</span><span class="proj-vol">$150M · 10mo</span>
-        <select class="proj-start" id="s_plenary1" onchange="updateModel()">
-          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option>
-        </select></div>
+        <select class="proj-start" id="s_plenary1" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Plenary #2</span><span class="proj-vol">$150M · 10mo</span>
-        <select class="proj-start" id="s_plenary2" onchange="updateModel()">
-          <option value="7" selected>Nov-26</option><option value="8">Dec-26</option><option value="9">Jan-27</option>
-          <option value="10">Feb-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_plenary2" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Plenary #3</span><span class="proj-vol">$150M · 10mo</span>
-        <select class="proj-start" id="s_plenary3" onchange="updateModel()">
-          <option value="11">Mar-27</option><option value="12" selected>Apr-27</option>
-          <option value="13">May-27</option><option value="15">Jul-27</option>
-        </select></div>
+        <select class="proj-start" id="s_plenary3" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Balmain</span><span class="proj-vol">$200M/mo lend</span>
-        <select class="proj-start" id="s_balmain" onchange="updateModel()">
-          <option value="3">Jul-26</option><option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_balmain" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">Alceon</span><span class="proj-vol">$200M/mo lend</span>
-        <select class="proj-start" id="s_alceon" onchange="updateModel()">
-          <option value="4">Aug-26</option><option value="5" selected>Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_alceon" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">AMAL ($9B float)</span><span class="proj-vol">0.2% spread</span>
-        <select class="proj-start" id="s_amal" onchange="updateModel()">
-          <option value="4" selected>Aug-26</option><option value="5">Sep-26</option>
-          <option value="6">Oct-26</option><option value="9">Jan-27</option><option value="12">Apr-27</option>
-        </select></div>
+        <select class="proj-start" id="s_amal" onchange="updateModel()"></select></div>
       <div class="proj-row"><span class="proj-name">$2B pipeline</span><span class="proj-vol">Over 12 months</span>
-        <select class="proj-start" id="s_pipe2b" onchange="updateModel()">
-          <option value="9" selected>Jan-27</option><option value="10">Feb-27</option>
-          <option value="12">Apr-27</option><option value="15">Jul-27</option>
-        </select></div>
+        <select class="proj-start" id="s_pipe2b" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
       <div class="sl-row"><span class="sl-label">Discount rate</span><span class="sl-val" id="d3v">75%</span></div>
@@ -596,8 +540,33 @@ tr.net td:first-child{color:var(--t1);}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-const MONTHS=['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
+// ALL months: 8 actuals + 21 forecast = 29 total
+const ACT_MONTHS=['Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26'];
+const FORE_MONTHS=['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
+const MONTHS=FORE_MONTHS; // forecast model still uses 0-based FORE_MONTHS
 const N=21;
+const NA=8; // number of actual months
+
+// Actuals from Excel (read-only — not affected by scenario sliders)
+const ACTUALS = {
+  revenue:   [0,     3197,  10541, 13342, 14845, 20401, 27142, 54485],
+  cos:       [0,     831,   5017,  5546,  6129,  7048,  8106,  10720],
+  grossProfit:[0,    2366,  5524,  7796,  8716,  13353, 19036, 43765],
+  govtGrant: [0,     0,     0,     590718,0,     0,     0,     0    ],
+  expenses:  [0,     108270,176425,119325,126930,98594, 98568, 100995],
+  ebitda:    [0,    -105904,-170901,479189,-118214,-85241,-79532,-57230],
+  // cashflow
+  openingCash:[55272,376896,68480, 160887,43041, 50103, 5789,  306193],
+  cashIn:    [444525,70541, 217278,14583, 120401,227142,436937,354485],
+  cashOut:   [122901,378957,124871,132429,113340,271455,136533,120165],
+  closingCash:[376896,68480,160887,43041, 50103, 5789,  306193,540513],
+  // breakdown
+  trilogy:   [0,     458,   203,   1990,  454,   1080,  2700,  9180 ],
+  remara:    [0,     0,     0,     0,     1991,  4257,  7132,  22363],
+  mbaAbic:   [0,     2584,  9801,  10967, 12229, 14164, 16436, 18766],
+  other:     [0,     154,   538,   385,   171,   900,   900,   900  ],
+};
+
 let tierOn=[true,true,true];
 let panelOpen=[true,true,true];
 
@@ -723,21 +692,60 @@ function buildRevenue(){
   const sBa=gs('s_balmain'),sAl=gs('s_alceon'),sAm=gs('s_amal'),sP2b=gs('s_pipe2b');
 
   function act(s,i){return i>=s?1:0;}
-  function qtr(v,s,i){return act(s,i)*v/3;}
-  function proj(v,s,dur,i){return(i>=s&&i<s+dur)?v/dur:0;}
+
+  // ── RAMP PROFILES ─────────────────────────────────────────────────────────
+  // Tier 1: already live, gradual volume build over 4 quarters
+  // Apr-26 opens at ~50% (already onboarding), reaches 100% by month 9 (Jan-27)
+  const T1_RAMP = [0.50, 0.60, 0.70, 0.80, 0.85, 0.90, 0.95, 0.98, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0];
+  function qtrT1(v,s,i){
+    if(i<s) return 0;
+    return v/3 * T1_RAMP[Math.min(i-s, T1_RAMP.length-1)];
+  }
+
+  // Tier 3 pipeline / new clients: 10% → 30% → 60% → 100% over 4 months
+  const T3_RAMP = [0.10, 0.30, 0.60, 1.0];
+  function t3Scale(s,i){ return i<s ? 0 : T3_RAMP[Math.min(i-s, T3_RAMP.length-1)]; }
+
+  // Fixed-term construction projects: realistic draw profile over build period
+  // Slow start (mobilisation), peaks mid-project, tapers at end
+  const DRAW_10MO = [0.04, 0.08, 0.13, 0.15, 0.15, 0.13, 0.11, 0.09, 0.07, 0.05];
+  function projDraw(v,s,i){
+    if(i<s || i>=s+10) return 0;
+    return v * DRAW_10MO[i-s];
+  }
+
+  // Quarterly recurring pipeline: ramps over 4 months then steady
+  function qtrPipe(v,s,i){
+    if(i<s) return 0;
+    return v/3 * t3Scale(s,i);
+  }
+
+  // Tier 2 MBANSW: licensed partnership ramps over 3 months (30% → 70% → 100%)
+  const MBANSW_RAMP = [0.30, 0.70, 1.0];
+  function mbanswScale(s,i){ return i<s ? 0 : MBANSW_RAMP[Math.min(i-s, MBANSW_RAMP.length-1)]; }
+
+  // Lending volume ramp (Balmain, Alceon): configured ramp from Assumptions tab
   function rampAct(s,ramp,i){ if(i<s)return 0; const mo=i-s; return ramp===0?1:Math.min(1,(mo+1)/ramp); }
 
-  const triV=MONTHS.map((_,i)=>qtr(50e6,sT,i));
-  const remV=MONTHS.map((_,i)=>qtr(50e6,sR,i));
-  const avV =MONTHS.map((_,i)=>proj(30e6,sAv,10,i));
-  const moV =MONTHS.map((_,i)=>proj(100e6,sMo,10,i));
-  const raV =MONTHS.map((_,i)=>qtr(25e6,sRa,i));
-  const poV =MONTHS.map((_,i)=>qtr(20e6,sPo,i));
-  const loV =MONTHS.map((_,i)=>proj(150e6,sLo,10,i));
-  const p1V =MONTHS.map((_,i)=>proj(150e6,sP1,10,i));
-  const p2V =MONTHS.map((_,i)=>proj(150e6,sP2,10,i));
-  const p3V =MONTHS.map((_,i)=>proj(150e6,sP3,10,i));
-  const p2bV=MONTHS.map((_,i)=>act(sP2b,i)*pipe2bVol/pipe2bRamp);
+  // ── VOLUMES ───────────────────────────────────────────────────────────────
+  // Tier 1 — contracted, already live, gradual ramp to full run rate
+  const triV = MONTHS.map((_,i)=>qtrT1(50e6,sT,i));
+  const remV = MONTHS.map((_,i)=>qtrT1(50e6,sR,i));
+
+  // Tier 3 — fixed-term construction projects (10-month draw profile)
+  const avV  = MONTHS.map((_,i)=>projDraw(30e6,sAv,i));
+  const moV  = MONTHS.map((_,i)=>projDraw(100e6,sMo,i));
+  const loV  = MONTHS.map((_,i)=>projDraw(150e6,sLo,i));
+  const p1V  = MONTHS.map((_,i)=>projDraw(150e6,sP1,i));
+  const p2V  = MONTHS.map((_,i)=>projDraw(150e6,sP2,i));
+  const p3V  = MONTHS.map((_,i)=>projDraw(150e6,sP3,i));
+
+  // Tier 3 — ongoing quarterly with 4-month onboarding ramp
+  const raV  = MONTHS.map((_,i)=>qtrPipe(25e6,sRa,i));
+  const poV  = MONTHS.map((_,i)=>qtrPipe(20e6,sPo,i));
+
+  // $2B pipeline: spread over ramp period with T3 4-month ramp on top
+  const p2bV = MONTHS.map((_,i)=>act(sP2b,i)*pipe2bVol/pipe2bRamp*t3Scale(sP2b,i));
 
   // TIER 1
   const t1parts={};
@@ -774,12 +782,17 @@ function buildRevenue(){
 
   // TIER 2
   const t2parts={};
-  const mnswR=[0,0,0,36000,72000,120000,180000,240000,276000,288000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000];
-  t2parts.mbansw=MONTHS.map((_,i)=>i>=sMbansw?mnswR[i]:0);
+  // MBANSW: licensed partnership, ramps over 3 months from start date
+  const mnswFull=[0,0,0,36000,72000,120000,180000,240000,276000,288000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000,300000];
+  t2parts.mbansw=MONTHS.map((_,i)=>{
+    if(i<sMbansw) return 0;
+    // apply ramp on top of the existing monthly schedule
+    return mnswFull[i] * mbanswScale(sMbansw,i);
+  });
   function reRamp(fullYr,start,i){
     if(i<start)return 0;
     const mo=i-start;
-    const r=[0.1,0.3,0.5,0.8,0.9,1,1,1,1,1,1,1];
+    const r=[0.1,0.3,0.6,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
     return fullYr/12*r[Math.min(mo,r.length-1)];
   }
   t2parts.jc   =MONTHS.map((_,i)=>reRamp(400000,sJC,i));
@@ -792,11 +805,13 @@ function buildRevenue(){
   const t3parts={};
   const pipV=MONTHS.map((_,i)=>avV[i]+moV[i]+raV[i]+poV[i]+loV[i]+p1V[i]+p2V[i]+p3V[i]);
   t3parts.pipSubcon  =pipV.map(v=>v*subAlloc*subFee);
-  t3parts.pipPlatform=pipV.map((v,i)=>platAll?v*platFee:0);
+  t3parts.pipPlatform=pipV.map((v)=>platAll?v*platFee:0);
   const bScale=bInv/5;
-  t3parts.balmain=MONTHS.map((_,i)=>i>=sBa?balmainVol*platFee*bScale*rampAct(sBa,balmainRamp,i):0);
-  t3parts.alceon =MONTHS.map((_,i)=>i>=sAl?alceonVol*platFee*rampAct(sAl,alceonRamp,i):0);
-  t3parts.amal   =MONTHS.map((_,i)=>i>=sAm?9e9*amalPct*amalSpread/12:0);
+  // Balmain & Alceon: T3 ramp on top of any configured volume ramp
+  t3parts.balmain=MONTHS.map((_,i)=>i<sBa?0:balmainVol*platFee*bScale*t3Scale(sBa,i)*rampAct(sBa,balmainRamp,i));
+  t3parts.alceon =MONTHS.map((_,i)=>i<sAl?0:alceonVol*platFee*t3Scale(sAl,i)*rampAct(sAl,alceonRamp,i));
+  // AMAL: T3 ramp — large relationship, slow to engage
+  t3parts.amal   =MONTHS.map((_,i)=>i<sAm?0:9e9*amalPct*amalSpread/12*t3Scale(sAm,i));
   t3parts.pipe2b =p2bV.map(v=>v*subAlloc*subFee);
   const tier3=MONTHS.map((_,i)=>Object.values(t3parts).reduce((s,a)=>s+a[i],0)*d3);
 
@@ -889,50 +904,99 @@ function drawCharts(d){
       y:{ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},callback:v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+v},grid:{color:'#1e2840'}}
     }
   };
+  const allLabels = [...ACT_MONTHS, ...FORE_MONTHS];
+  const actRevPadded  = [...ACTUALS.revenue,   ...d.totalRev];
+  const actCashPadded = [...ACTUALS.closingCash,...d.cash];
+  const actEbitda     = [...ACTUALS.ebitda,     ...d.ebitda];
+  // For stacked chart: actuals as a single "Actuals" series, forecast split by tier
+  const actOnlyRev  = [...ACTUALS.revenue,   ...Array(N).fill(null)];
+  const foreT1      = [...Array(NA).fill(null), ...d.tier1];
+  const foreT2      = [...Array(NA).fill(null), ...d.tier2];
+  const foreT3      = [...Array(NA).fill(null), ...d.tier3];
+
   if(cRev)cRev.destroy();
-  cRev=new Chart(document.getElementById('chartRev'),{type:'bar',data:{labels:MONTHS,datasets:[
-    {label:'T1 Contracted',data:d.tier1,backgroundColor:'rgba(16,185,129,.8)',stack:'s'},
-    {label:'T2 Alliance+RE',data:d.tier2,backgroundColor:'rgba(59,130,246,.8)',stack:'s'},
-    {label:'T3 Pipeline',data:d.tier3,backgroundColor:'rgba(245,158,11,.8)',stack:'s'},
+  cRev=new Chart(document.getElementById('chartRev'),{type:'bar',data:{labels:allLabels,datasets:[
+    {label:'Actuals',      data:actOnlyRev, backgroundColor:'rgba(148,163,184,.6)', stack:'s'},
+    {label:'T1 Contracted',data:foreT1,     backgroundColor:'rgba(16,185,129,.8)',  stack:'s'},
+    {label:'T2 Alliance+RE',data:foreT2,    backgroundColor:'rgba(59,130,246,.8)',  stack:'s'},
+    {label:'T3 Pipeline',  data:foreT3,     backgroundColor:'rgba(245,158,11,.8)',  stack:'s'},
   ]},options:{...co,scales:{...co.scales,x:{...co.scales.x,stacked:true},y:{...co.scales.y,stacked:true}}}});
 
   if(cCash)cCash.destroy();
-  cCash=new Chart(document.getElementById('chartCash'),{type:'line',data:{labels:MONTHS,datasets:[
-    {label:'Cash Balance',data:d.cash,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
-    {label:'EBITDA',data:d.ebitda,borderColor:'rgba(16,185,129,.55)',borderDash:[4,3],tension:.3,pointRadius:2,fill:false}
+  cCash=new Chart(document.getElementById('chartCash'),{type:'line',data:{labels:allLabels,datasets:[
+    {label:'Cash Balance',data:actCashPadded,borderColor:'#60a5fa',backgroundColor:'rgba(96,165,250,.07)',fill:true,tension:.3,pointRadius:3},
+    {label:'EBITDA',      data:actEbitda,    borderColor:'rgba(16,185,129,.55)',borderDash:[4,3],tension:.3,pointRadius:2,fill:false}
   ]},options:co});
 }
 
 function buildSummary(d){
-  const cols=['FY2026 Q4','FY2027','FY2028 H1'];
+  // Actuals: FY2026 H1 = Jul-25 to Feb-26 (all 8 actual months)
+  const actTotRev = ACTUALS.revenue.reduce((s,v)=>s+v,0);
+  const actCos    = ACTUALS.cos.reduce((s,v)=>s+v,0);
+  const actExp    = ACTUALS.expenses.reduce((s,v)=>s+v,0);
+  const actGP     = ACTUALS.grossProfit.reduce((s,v)=>s+v,0);
+  const actEbitda = ACTUALS.ebitda.reduce((s,v)=>s+v,0);
+
+  const cols=['Actuals (Jul25–Feb26)','FY2026 Q4 (Fcst)','FY2027 (Fcst)','FY2028 H1 (Fcst)'];
   const rng=[[0,2],[3,14],[15,20]];
   const rows=[
     {sec:'Revenue'},
-    {n:'Contracted (T1)',a:d.tier1},{n:'Alliance & RE (T2)',a:d.tier2},{n:'Named Pipeline (T3)',a:d.tier3},
-    {ttl:'Total Revenue',a:d.totalRev},
+    {n:'Contracted (T1)',  act:ACTUALS.trilogy.reduce((s,v)=>s+v,0)+ACTUALS.remara.reduce((s,v)=>s+v,0), a:d.tier1},
+    {n:'Alliance (T2)',    act:ACTUALS.mbaAbic.reduce((s,v)=>s+v,0), a:d.tier2},
+    {n:'Named Pipeline (T3)', act:0, a:d.tier3},
+    {ttl:'Total Revenue',  act:actTotRev,  a:d.totalRev},
     {sec:'Costs'},
-    {n:'Cost of Sales',a:d.cosB,neg:true},{n:'Operating Expenses',a:d.exp,neg:true},
-    {ttl:'Gross Profit',a:d.gp},
-    {net:'EBITDA',a:d.ebitda},
+    {n:'Cost of Sales',    act:actCos,     a:d.cosB,  neg:true},
+    {n:'Operating Expenses',act:actExp,    a:d.exp,   neg:true},
+    {ttl:'Gross Profit',   act:actGP,      a:d.gp},
+    {net:'EBITDA',         act:actEbitda,  a:d.ebitda},
   ];
-  let h='<thead><tr><th>Line Item</th>'+cols.map(c=>'<th>'+c+'</th>').join('')+'</tr></thead><tbody>';
+  let h='<thead><tr><th>Line Item</th>'+cols.map((c,i)=>`<th style="${i===0?'color:var(--text3);font-style:italic':''}">${c}</th>`).join('')+'</tr></thead><tbody>';
   for(const r of rows){
-    if(r.sec){h+=`<tr class="sec"><td colspan="4">${r.sec}</td></tr>`;continue;}
-    if(r.net){h+=`<tr class="net"><td>${r.net}</td>`;rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${v<0?'neg':'pos'}">${fmt(v)}</td>`;});h+='</tr>';continue;}
-    if(r.ttl){h+=`<tr class="ttl"><td>${r.ttl}</td>`;rng.forEach(([a,b])=>h+=`<td>${fmt(sum(r.a,a,b))}</td>`);h+='</tr>';continue;}
-    h+=`<tr><td>${r.n}</td>`;rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${r.neg?'neg':''}">${fmt(r.neg?-v:v)}</td>`;});h+='</tr>';
+    if(r.sec){h+=`<tr class="sec"><td colspan="5">${r.sec}</td></tr>`;continue;}
+    if(r.net){
+      h+=`<tr class="net"><td>${r.net}</td>`;
+      h+=`<td style="color:var(--text3);font-style:italic" class="${r.act<0?'neg':'pos'}">${fmt(r.act)}</td>`;
+      rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${v<0?'neg':'pos'}">${fmt(v)}</td>`;});
+      h+='</tr>';continue;
+    }
+    if(r.ttl){
+      h+=`<tr class="ttl"><td>${r.ttl}</td>`;
+      h+=`<td style="color:var(--text3);font-style:italic">${fmt(r.act)}</td>`;
+      rng.forEach(([a,b])=>h+=`<td>${fmt(sum(r.a,a,b))}</td>`);
+      h+='</tr>';continue;
+    }
+    h+=`<tr><td>${r.n}</td>`;
+    h+=`<td style="color:var(--text3);font-style:italic" class="${r.neg?'neg':''}">${fmt(r.neg?-r.act:r.act)}</td>`;
+    rng.forEach(([a,b])=>{const v=sum(r.a,a,b);h+=`<td class="${r.neg?'neg':''}">${fmt(r.neg?-v:v)}</td>`;});
+    h+='</tr>';
   }
   h+='</tbody>';
   document.getElementById('tblSummary').innerHTML=h;
 }
 
 function buildMonthly(id,rows){
-  let h='<thead><tr><th>Line Item</th>'+MONTHS.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>';
+  // Header: actuals months (grey/italic) + forecast months
+  const allM=[...ACT_MONTHS,...FORE_MONTHS];
+  const totalCols=NA+N;
+  let h='<thead><tr><th>Line Item</th>';
+  ACT_MONTHS.forEach(m=>h+=`<th style="color:var(--text3);font-style:italic">${m}</th>`);
+  FORE_MONTHS.forEach(m=>h+=`<th>${m}</th>`);
+  h+='</tr></thead><tbody>';
+
   for(const r of rows){
-    if(r.sec){h+=`<tr class="sec"><td colspan="${N+1}">${r.sec}</td></tr>`;continue;}
+    if(r.sec){h+=`<tr class="sec"><td colspan="${totalCols+1}">${r.sec}</td></tr>`;continue;}
     h+=`<tr class="${r.net?'net':r.ttl?'ttl':''}"><td>${r.n||r.net||r.ttl}</td>`;
-    MONTHS.forEach((_,i)=>{
-      const raw=r.a[i];const v=r.neg?-raw:raw;
+    // Actuals columns (from r.act array if provided, else zeros)
+    ACT_MONTHS.forEach((_,i)=>{
+      const raw = r.act ? r.act[i] : 0;
+      const v = r.neg ? -raw : raw;
+      const cl = r.net?(v<0?'neg':'pos'):(r.neg&&raw>0?'neg':'');
+      h+=`<td class="${cl}" style="color:var(--text3);font-style:italic">${fmts(v)}</td>`;
+    });
+    // Forecast columns
+    FORE_MONTHS.forEach((_,i)=>{
+      const raw=r.a[i]; const v=r.neg?-raw:raw;
       const cl=r.net?(v<0?'neg':'pos'):(r.neg&&raw>0?'neg':'');
       h+=`<td class="${cl}">${fmts(v)}</td>`;
     });
@@ -941,6 +1005,20 @@ function buildMonthly(id,rows){
   h+='</tbody>';
   document.getElementById(id).innerHTML=h;
 }
+
+// Map actuals arrays to table rows for P&L and cashflow
+const PL_ACTUALS = {
+  tier1: ACTUALS.trilogy.map((v,i)=>v+ACTUALS.remara[i]+ACTUALS.mbaAbic[i]),
+  tier2: ACTUALS.other,
+  tier3: Array(NA).fill(0),
+  totalRev: ACTUALS.revenue,
+  cosB: ACTUALS.cos,
+  exp:  ACTUALS.expenses,
+  gp:   ACTUALS.grossProfit,
+  ebitda: ACTUALS.ebitda,
+  cashFlow: ACTUALS.ebitda,
+  cash: ACTUALS.closingCash,
+};
 
 function buildTiming(d){
   const tc=['var(--t1)','var(--t2)','var(--t3)'];
@@ -995,14 +1073,23 @@ function updateModel(){
   drawCharts(d);
   buildSummary(d);
   buildMonthly('tblPL',[
-    {sec:'Revenue'},{n:'Tier 1',a:d.tier1},{n:'Tier 2',a:d.tier2},{n:'Tier 3',a:d.tier3},
-    {ttl:'Total Revenue',a:d.totalRev},
-    {sec:'Costs'},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Opex & Wages',a:d.exp,neg:true},
-    {ttl:'Gross Profit',a:d.gp},{net:'EBITDA',a:d.ebitda},
+    {sec:'Revenue'},
+    {n:'Tier 1',         a:d.tier1,    act:PL_ACTUALS.tier1},
+    {n:'Tier 2',         a:d.tier2,    act:PL_ACTUALS.tier2},
+    {n:'Tier 3',         a:d.tier3,    act:PL_ACTUALS.tier3},
+    {ttl:'Total Revenue',a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {sec:'Costs'},
+    {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
+    {n:'Opex & Wages',   a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
+    {ttl:'Gross Profit', a:d.gp,       act:PL_ACTUALS.gp},
+    {net:'EBITDA',       a:d.ebitda,   act:PL_ACTUALS.ebitda},
   ]);
   buildMonthly('tblCash',[
-    {n:'Revenue',a:d.totalRev},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Expenses',a:d.exp,neg:true},
-    {net:'Net Cashflow',a:d.cashFlow},{net:'Cash Balance',a:d.cash},
+    {n:'Revenue',        a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {n:'Cost of Sales',  a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
+    {n:'Expenses',       a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
+    {net:'Net Cashflow', a:d.cashFlow, act:PL_ACTUALS.cashFlow},
+    {net:'Cash Balance', a:d.cash,     act:PL_ACTUALS.cash},
   ]);
   buildTiming(d);
   buildBS(d);
@@ -1196,22 +1283,52 @@ function updateModel(){
   updateKPIs(d);
   drawCharts(d);
   buildSummary(d);
-  buildMonthly('tblPL',[
-    {sec:'Revenue'},{n:'Tier 1',a:d.tier1},{n:'Tier 2',a:d.tier2},{n:'Tier 3',a:d.tier3},
-    {ttl:'Total Revenue',a:d.totalRev},
-    {sec:'Costs'},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Opex & Wages',a:d.exp,neg:true},
-    {ttl:'Gross Profit',a:d.gp},{net:'EBITDA',a:d.ebitda},
-  ]);
-  buildMonthly('tblCash',[
-    {n:'Revenue',a:d.totalRev},{n:'Cost of Sales',a:d.cosB,neg:true},{n:'Expenses',a:d.exp,neg:true},
-    {net:'Net Cashflow',a:d.cashFlow},{net:'Cash Balance',a:d.cash},
-  ]);
   buildTiming(d);
   buildBS(d);
 }
 
+// Default start month for each project selector
+// MONTHS index: 0=Apr-26, 1=May-26, 2=Jun-26, 3=Jul-26, 4=Aug-26, 5=Sep-26,
+//               6=Oct-26, 7=Nov-26, 8=Dec-26, 9=Jan-27, 10=Feb-27, 11=Mar-27,
+//               12=Apr-27, 13=May-27, 14=Jun-27, 15=Jul-27, 16=Aug-27, 17=Sep-27
+const PROJ_DEFAULTS = {
+  // Tier 1 — already live, ramp applied in model
+  s_trilogy: 0,   // Apr-26
+  s_remara:  0,   // Apr-26
+  s_mba:     0,   // Apr-26
+  // Tier 2 — MBANSW Sep-26, Paid.RE agencies Jan-27
+  s_mbansw:  5,   // Sep-26
+  s_jc:      9,   // Jan-27
+  s_mw:      9,   // Jan-27
+  s_reiv:    9,   // Jan-27
+  // Tier 3 — staggered from Sep-26 through Sep-27
+  s_avari:   5,   // Sep-26  — first cab off the rank
+  s_radius:  5,   // Sep-26  — quarterly, starts same time
+  s_plenary1:5,   // Sep-26
+  s_moda:    6,   // Oct-26
+  s_portside:6,   // Oct-26
+  s_balmain: 6,   // Oct-26  — lending volume, conservative start
+  s_logispace:7,  // Nov-26
+  s_alceon:  8,   // Dec-26
+  s_amal:    8,   // Dec-26
+  s_pipe2b:  9,   // Jan-27  — broader pipeline, emerges later
+  s_plenary2:11,  // Mar-27
+  s_plenary3:14,  // Jun-27  — final Plenary project
+};
+
+function populateDropdowns(){
+  Object.entries(PROJ_DEFAULTS).forEach(([id, defaultVal])=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.innerHTML = MONTHS.map((m,i)=>
+      `<option value="${i}"${i===defaultVal?' selected':''}>${m}</option>`
+    ).join('');
+  });
+}
+
 // Init
 buildHeadcountGrid();
+populateDropdowns();
 updateModel();
 </script>
 </body>
