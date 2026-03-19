@@ -35,7 +35,7 @@ header{padding:22px 36px 18px;border-bottom:1px solid var(--border);display:flex
 
   /* Hide everything except print content */
   header, aside, .kpi-grid, .view-tabs, .charts-grid,
-  #chartCapitalIn, .chart-card, .spills, .print-btn,
+  #chartCapitalIn, #chartBurn, .chart-card, .spills, .print-btn,
   #view-timing, #view-assumptions { display:none !important; }
 
   body { background: white !important; color: #111 !important; font-size: 8pt; }
@@ -446,6 +446,11 @@ tr.net td:first-child{color:var(--t1);}
   <div class="chart-card" style="margin-bottom:22px">
     <div class="chart-title">Capital Events — Equity Raises, Grants &amp; Loan Repayments</div>
     <canvas id="chartCapitalIn" height="130"></canvas>
+  </div>
+  <div class="chart-card" style="margin-bottom:22px">
+    <div class="chart-title">Monthly Burn Rate — Revenue minus Total Costs</div>
+    <div style="font-size:10px;color:var(--text3);margin-bottom:6px">Green = cash generating · Red = burning cash · Actuals shown in grey</div>
+    <canvas id="chartBurn" height="130"></canvas>
   </div>
 
   <div id="view-summary">
@@ -1572,6 +1577,72 @@ function drawCharts(d){
   });
 
   if(window.cCapOut) window.cCapOut.destroy();
+
+  // ── BURN RATE CHART ───────────────────────────────────────────────────────
+  // Revenue - all costs (EBITDA) per month, actuals grey, forecast green/red
+  const burnActuals = ACTUALS.ebitda; // actual monthly burn from P&L
+  const burnForecast = d.ebitda;      // forecast monthly burn
+
+  const burnActData  = [...burnActuals, ...Array(N).fill(null)];
+  const burnForePos  = [...Array(NA).fill(null), ...burnForecast.map(v => v >= 0 ? v : null)];
+  const burnForeNeg  = [...Array(NA).fill(null), ...burnForecast.map(v => v <  0 ? v : null)];
+
+  if(window.cBurn) window.cBurn.destroy();
+  window.cBurn = new Chart(document.getElementById('chartBurn'), {
+    type: 'bar',
+    data: {
+      labels: allLabels,
+      datasets: [
+        {
+          label: 'Actuals',
+          data: burnActData,
+          backgroundColor: burnActData.map(v =>
+            v === null ? 'transparent' :
+            v >= 0 ? 'rgba(148,163,184,0.6)' : 'rgba(148,163,184,0.4)'
+          ),
+          borderRadius: 2,
+        },
+        {
+          label: 'Generating cash',
+          data: burnForePos,
+          backgroundColor: 'rgba(16,185,129,0.8)',
+          borderRadius: 2,
+        },
+        {
+          label: 'Burning cash',
+          data: burnForeNeg,
+          backgroundColor: 'rgba(239,68,68,0.8)',
+          borderRadius: 2,
+        },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: true,
+      plugins: {
+        legend: {labels: {color:'#8b96b0', font:{size:10,family:'DM Mono'}, boxWidth:9, padding:6}},
+        tooltip: {callbacks: {label: (ctx) => {
+          const v = ctx.parsed.y;
+          if(v===null) return null;
+          const a = Math.abs(v);
+          const s = '$'+(a>=1e6?(a/1e6).toFixed(2)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a.toFixed(0));
+          return ctx.dataset.label+': '+(v<0?'-':'')+s;
+        }}},
+      },
+      scales: {
+        x: {ticks:{color:'#4a5470',font:{size:9},maxRotation:45}, grid:{color:'#1e2840'}, stacked:true},
+        y: {
+          stacked: true,
+          ticks: {color:'#4a5470', font:{size:9,family:'DM Mono'},
+            callback: v => {
+              const a=Math.abs(v);
+              return (v<0?'-':'')+'$'+(a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a);
+            }
+          },
+          grid: {color:'#1e2840'},
+        }
+      }
+    }
+  });
 }
 
 function buildSummary(d){
