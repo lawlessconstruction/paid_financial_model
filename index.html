@@ -1378,7 +1378,11 @@ function buildRevenue(){
     return Math.min(1,(i-sMbansw+1)/12) * 25000/12 * 60; // $60/contract CoS
   });
   const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
-  const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]);
+  // Office expense — $2K/month from Jul-26 if any Balmain investment received
+  const balmainInvAmt = gv('balmainInv') * 1e6;
+  const officeExp = MONTHS.map((_,i) => (i >= 3 && balmainInvAmt > 0) ? 2000 : 0);
+
+  const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]+officeExp[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
   const ebitda=MONTHS.map((_,i)=>gp[i]-exp[i]);
   // Equity raises
