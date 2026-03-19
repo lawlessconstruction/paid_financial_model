@@ -1522,9 +1522,9 @@ function drawCharts(d){
   window.cCapIn=new Chart(document.getElementById('chartCapitalIn'),{
     type:'bar',
     data:{labels:capLabels,datasets:[
-      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4, yAxisID:'yEquity'},
-      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4, yAxisID:'yEvents'},
-      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4, yAxisID:'yEvents'},
+      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4},
+      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4},
+      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4},
     ]},
     options:{
       responsive:true, maintainAspectRatio:true,
@@ -1538,22 +1538,9 @@ function drawCharts(d){
       },
       scales:{
         x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
-        yEvents:{
-          position:'left',
-          min:0,
-          title:{display:true,text:'Grants & Repayments',color:'rgba(148,163,184,0.6)',font:{size:9,family:'DM Mono'}},
-          ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
+        y:{min:0,ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
             callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
-          grid:{color:'#1e2840'}
-        },
-        yEquity:{
-          position:'right',
-          min:0,
-          title:{display:true,text:'Equity Raised',color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'}},
-          ticks:{color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'},
-            callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
-          grid:{drawOnChartArea:false}
-        },
+          grid:{color:'#1e2840'}},
       }
     },
     plugins:[valueLabelPlugin]
