@@ -615,7 +615,7 @@ tr.net td:first-child{color:var(--t1);}
       <li>Superannuation: 12% on wages</li>
       <li>Payroll tax: 4.85% (Vic) applied from Jul-26</li>
       <li>Overhead (non-wage opex): ~$67K/month base from actuals — subscriptions, dev subcontractors, accounting, insurance. Scalable via overhead multiplier in Assumptions</li>
-      <li>Future hires: individually toggled in Assumptions — each with configurable start month and salary</li>
+      <li><strong>Future hires (10 slots, Jul-26 onwards):</strong> Compliance Manager, CFO, Customer Support Lead (all Jul-26), then Sales/Marketing (Aug-26), Dev (Sep-26), Sales/Cust Support (Oct-26), Dev (Nov-26), Sales/Cust Support (Dec-26), Dev (Jan-27), Sales/Cust Support (Feb-27) — individually togglable with configurable start month and salary</li>
     </ul>
 
     </div>
@@ -879,16 +879,16 @@ let coreTeamOn = true;
 
 // Future hires — 10 slots, each togglable with a start month and role/salary
 const FUTURE_HIRES = [
-  {id:'fh1', name:'Hire 1', role:'RE / Sales',    salary:120000, startMonth:3},
-  {id:'fh2', name:'Hire 2', role:'RE / Sales',    salary:120000, startMonth:3},
-  {id:'fh3', name:'Hire 3', role:'RE / Sales',    salary:120000, startMonth:3},
-  {id:'fh4', name:'Hire 4', role:'Tech / Dev',    salary:150000, startMonth:4},
-  {id:'fh5', name:'Hire 5', role:'Tech / Dev',    salary:150000, startMonth:5},
-  {id:'fh6', name:'Hire 6', role:'Compliance',    salary:130000, startMonth:6},
-  {id:'fh7', name:'Hire 7', role:'Operations',    salary:110000, startMonth:7},
-  {id:'fh8', name:'Hire 8', role:'Operations',    salary:110000, startMonth:8},
-  {id:'fh9', name:'Hire 9', role:'Sales / BD',    salary:120000, startMonth:9},
-  {id:'fh10',name:'Hire 10',role:'Executive',     salary:180000, startMonth:10},
+  {id:'fh1', name:'Hire 1', role:'Compliance Manager', salary:120000, startMonth:3},
+  {id:'fh2', name:'Hire 2', role:'CFO',                salary:120000, startMonth:3},
+  {id:'fh3', name:'Hire 3', role:'Customer Support Lead', salary:120000, startMonth:3},
+  {id:'fh4', name:'Hire 4', role:'Sales / Marketing',  salary:150000, startMonth:4},
+  {id:'fh5', name:'Hire 5', role:'Dev',                salary:150000, startMonth:5},
+  {id:'fh6', name:'Hire 6', role:'Sales / Cust Support',salary:130000, startMonth:6},
+  {id:'fh7', name:'Hire 7', role:'Dev',                salary:110000, startMonth:7},
+  {id:'fh8', name:'Hire 8', role:'Sales / Cust Support',salary:110000, startMonth:8},
+  {id:'fh9', name:'Hire 9', role:'Dev',                salary:120000, startMonth:9},
+  {id:'fh10',name:'Hire 10',role:'Sales / Cust Support',salary:180000, startMonth:10},
 ];
 
 function buildHeadcountGrid(){
@@ -1522,9 +1522,9 @@ function drawCharts(d){
   window.cCapIn=new Chart(document.getElementById('chartCapitalIn'),{
     type:'bar',
     data:{labels:capLabels,datasets:[
-      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4},
-      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4},
-      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4},
+      {label:'Equity Raised',   data:equityData, backgroundColor:'rgba(52,211,153,0.85)', borderRadius:4, yAxisID:'yEquity'},
+      {label:'R&D Grant',       data:grantData,  backgroundColor:'rgba(251,191,36,0.85)',  borderRadius:4, yAxisID:'yEvents'},
+      {label:'Loan Repayments', data:repayData,  backgroundColor:'rgba(239,68,68,0.85)',   borderRadius:4, yAxisID:'yEvents'},
     ]},
     options:{
       responsive:true, maintainAspectRatio:true,
@@ -1538,9 +1538,22 @@ function drawCharts(d){
       },
       scales:{
         x:{ticks:{color:'#4a5470',font:{size:9},maxRotation:45},grid:{color:'#1e2840'}},
-        y:{min:0,ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
+        yEvents:{
+          position:'left',
+          min:0,
+          title:{display:true,text:'Grants & Repayments',color:'rgba(148,163,184,0.6)',font:{size:9,family:'DM Mono'}},
+          ticks:{color:'#4a5470',font:{size:9,family:'DM Mono'},
             callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
-          grid:{color:'#1e2840'}},
+          grid:{color:'#1e2840'}
+        },
+        yEquity:{
+          position:'right',
+          min:0,
+          title:{display:true,text:'Equity Raised',color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'}},
+          ticks:{color:'rgba(52,211,153,0.6)',font:{size:9,family:'DM Mono'},
+            callback:v=>'$'+(v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?(v/1e3).toFixed(0)+'K':v)},
+          grid:{drawOnChartArea:false}
+        },
       }
     },
     plugins:[valueLabelPlugin]
