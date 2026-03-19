@@ -1326,7 +1326,6 @@ function buildRevenue(){
   const investmentReceived = gv('balmainInv')*1e6 + gv('reRaise')*1e6;
   const invPct = Math.min(1, investmentReceived / TOTAL_INV_TARGET);
   const hiresActivated = Math.round(invPct * FUTURE_HIRES.length); // 0–10
-  console.log('[Hires] inv=$'+investmentReceived.toFixed(0)+' pct='+invPct.toFixed(2)+' activated='+hiresActivated);
 
   // Show a note in the headcount grid about auto-activation
   const hcNote = document.getElementById('hcInvNote');
@@ -1354,7 +1353,6 @@ function buildRevenue(){
     });
     return w;
   });
-  console.log('[Hires] futureHireWages[3]='+futureHireWages[3].toFixed(0)+' (Jul-26, expect '+(hiresActivated*10000).toFixed(0)+'ish)');
 
   // Core wages with annual growth tiers (from Payroll sheet: 4% → 8% → 12%)
   const coreWages = MONTHS.map((_,i)=>{
