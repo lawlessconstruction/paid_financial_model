@@ -2012,6 +2012,9 @@ function showView(v){
   document.querySelectorAll('.tab').forEach((t,i)=>{
     t.classList.toggle('active',['summary','pl','cashflow','timing','bs','assumptions','full'][i]===v);
   });
+  // Hide charts and KPIs on full report tab — they're not relevant there
+  const hideOnFull = document.querySelectorAll('.charts-grid, .chart-card, .kpi-grid, .spills');
+  hideOnFull.forEach(el => el.style.display = v==='full' ? 'none' : '');
   if(v==='full') buildFullReport();
 }
 
