@@ -601,6 +601,7 @@ tr.net td:first-child{color:var(--t1);}
       <li><strong>Hirst — $100K:</strong> Rights issue alongside O'Rourke, Apr-26</li>
       <li><strong>Balmain — up to $5M:</strong> Equity investment, Jul-26</li>
       <li><strong>R&amp;D Grant — $600K:</strong> Sep-26 (shown as other income in P&amp;L)</li>
+      <li><strong>R&amp;D Grant — $600K:</strong> Sep-27 (recurring annual grant)</li>
       <li><strong>AMAL loan repayment — $600K:</strong> Sep-26 (offsets R&amp;D grant — net zero on cash)</li>
       <li><strong>RE Platform raise — $1.5M:</strong> REIV $750K + others, split Oct-26 and Nov-26</li>
       <li><strong>Convertible note — $60K:</strong> Repayment incl. interest, Jul-26</li>
@@ -1372,7 +1373,8 @@ function buildRevenue(){
   });
 
   // R&D Grant — $600K other income in Sep-26 (month 5), shows in revenue
-  const rdGrant = MONTHS.map((_,i) => i===5 ? 600000 : 0);
+  // R&D Grant — $600K in Sep-26 (month 5) and Sep-27 (month 17)
+  const rdGrant = MONTHS.map((_,i) => (i===5 || i===17) ? 600000 : 0);
 
   // Loan repayments and other cash movements
   const loanRepayments = MONTHS.map((_,i) => {
@@ -1483,7 +1485,7 @@ function drawCharts(d){
     if(fi===6||fi===7) return reRaiseTotal/2;
     return null;
   });
-  const grantData = capLabels.map((_,i)=> i-NA===5 ? 600000 : null);
+  const grantData = capLabels.map((_,i)=> (i-NA===5 || i-NA===17) ? 600000 : null);
   // Repayments positive (red bars above axis)
   const repayData = capLabels.map((_,i)=>{
     const fi=i-NA;
@@ -1682,6 +1684,12 @@ function updateModel(){
   const mbanswFinEl=document.getElementById('a_mbanswFinAdopt');
   if(mbanswFinEl) document.getElementById('mbanswFinV').textContent=mbanswFinEl.value+'%';
   document.getElementById('yieldV').textContent=document.getElementById('yieldRate').value+'%';
+  // Sync sidebar yield slider → Assumptions tab sliders so they all drive the model together
+  const yieldVal = document.getElementById('yieldRate').value;
+  const retYieldEl = document.getElementById('a_retYield');
+  const tranYieldEl = document.getElementById('a_tranYield');
+  if(retYieldEl) retYieldEl.value = yieldVal;
+  if(tranYieldEl) tranYieldEl.value = yieldVal;
   document.getElementById('erV').textContent=document.getElementById('erAdopt').value+'%';
   document.getElementById('wageV').textContent=document.getElementById('wageGrowth').value+'%';
   document.getElementById('balmainInvV').textContent='$'+document.getElementById('balmainInv').value+'M';
