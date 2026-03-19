@@ -799,7 +799,8 @@ tr.net td:first-child{color:var(--t1);}
           </div>
 
           <!-- Future hires -->
-          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Future Hires — toggle on to include in cost base</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px">Future Hires — auto-activated based on Balmain + RE investment received</div>
+          <div id="hcInvNote" style="font-size:10px;padding:6px 10px;border-radius:4px;background:var(--surface2);margin-bottom:10px;color:var(--text2)">Investment: calculating...</div>
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px" id="headcountGrid">
             <!-- built by JS -->
           </div>
@@ -1317,13 +1318,37 @@ function buildRevenue(){
   ];
   const coreBaseSalary = coreTeamOn ? CORE_TEAM.reduce((s,h)=>s+h.salary,0) : 0;
 
-  // Future hires — each individually toggled, with own start month and salary
+  // Future hires — activated proportionally based on investment received from
+  // Balmain ($5M, Jul-26) + RE raise ($1.5M default, Oct-Nov 26) = $6.5M total
+  // If 0% of $6.5M received → 0 hires; 100% received → all 10 hires
+  // Hires activate from #1 upward in order
+  const TOTAL_INV_TARGET = 6500000; // $6.5M total target
+  const investmentReceived = gv('balmainInv')*1e6 + gv('reRaise')*1e6;
+  const invPct = Math.min(1, investmentReceived / TOTAL_INV_TARGET);
+  const hiresActivated = Math.round(invPct * FUTURE_HIRES.length); // 0–10
+
+  // Show a note in the headcount grid about auto-activation
+  const hcNote = document.getElementById('hcInvNote');
+  if(hcNote){
+    const pct = (invPct*100).toFixed(0);
+    hcNote.textContent = `Investment: $${(investmentReceived/1e6).toFixed(2)}M of $6.5M (${pct}%) → ${hiresActivated} of 10 hires activated`;
+    hcNote.style.color = hiresActivated===10?'var(--t1)':hiresActivated===0?'var(--accent4)':'var(--accent3)';
+  }
+
+  // Also sync the toggle UI to reflect auto-activation
+  FUTURE_HIRES.forEach((h,idx)=>{
+    const togEl=document.getElementById('hctog_'+h.id);
+    if(togEl){
+      const shouldBeOn = idx < hiresActivated;
+      togEl.className='hc-tog '+(shouldBeOn?'on':'off');
+    }
+  });
+
   const futureHireWages = MONTHS.map((_,i)=>{
     let w=0;
-    FUTURE_HIRES.forEach(h=>{
-      const togEl=document.getElementById('hctog_'+h.id);
-      const isOn=togEl?togEl.classList.contains('on'):false;
-      if(!isOn) return;
+    FUTURE_HIRES.forEach((h,idx)=>{
+      // Hire is active only if within the investment-activated count
+      if(idx >= hiresActivated) return;
       const startEl=document.getElementById('fhstart_'+h.id);
       const salEl=document.getElementById('fhsal_'+h.id);
       const startMo=startEl?parseInt(startEl.value):h.startMonth;
