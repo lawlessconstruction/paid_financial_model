@@ -1336,19 +1336,15 @@ function buildRevenue(){
     hcNote.style.color = hiresActivated===10?'var(--t1)':hiresActivated===0?'var(--accent4)':'var(--accent3)';
   }
 
-  // Also sync the toggle UI to reflect auto-activation
+  // Sync toggle UI
   FUTURE_HIRES.forEach((h,idx)=>{
     const togEl=document.getElementById('hctog_'+h.id);
-    if(togEl){
-      const shouldBeOn = idx < hiresActivated;
-      togEl.className='hc-tog '+(shouldBeOn?'on':'off');
-    }
+    if(togEl){ togEl.className='hc-tog '+(idx < hiresActivated?'on':'off'); }
   });
 
   const futureHireWages = MONTHS.map((_,i)=>{
     let w=0;
     FUTURE_HIRES.forEach((h,idx)=>{
-      // Hire is active only if within the investment-activated count
       if(idx >= hiresActivated) return;
       const startEl=document.getElementById('fhstart_'+h.id);
       const salEl=document.getElementById('fhsal_'+h.id);
@@ -1358,6 +1354,7 @@ function buildRevenue(){
     });
     return w;
   });
+  console.log('[Hires] futureHireWages[3]='+futureHireWages[3].toFixed(0)+' (Jul-26, expect '+(hiresActivated*10000).toFixed(0)+'ish)');
 
   // Core wages with annual growth tiers (from Payroll sheet: 4% → 8% → 12%)
   const coreWages = MONTHS.map((_,i)=>{
