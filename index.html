@@ -301,7 +301,7 @@ tr.net td:first-child{color:var(--t1);}
     <span class="tdot" style="background:var(--t2)"></span>
     <span class="tname">Tier 2 — Alliance &amp; RE (contracted)</span>
     <span class="tbadge" style="background:rgba(59,130,246,.15);color:var(--t2)">Largely Certain</span>
-    <div class="toggle on" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
+    <div class="toggle off" id="tog2" onclick="event.stopPropagation();toggleTier(2)"></div>
   </div>
   <div class="tier-body open" id="tbody2">
     <div class="tier-note">MBANSW: 25,000 contracts/yr × $100 (60% CoS). Paid.RE: 10% deposit on every sale held ~60 days on platform, yield earned on float. Jellis Craig 12K sales/yr × $1M · Marshall White 3K × $3M · REIV 30K × 10% uptake × $800K.</div>
@@ -333,7 +333,7 @@ tr.net td:first-child{color:var(--t1);}
     <span class="tdot" style="background:var(--t3)"></span>
     <span class="tname">Tier 3 — Named Pipeline</span>
     <span class="tbadge" style="background:rgba(245,158,11,.15);color:var(--t3)">Expected</span>
-    <div class="toggle on" id="tog3" onclick="event.stopPropagation();toggleTier(3)"></div>
+    <div class="toggle off" id="tog3" onclick="event.stopPropagation();toggleTier(3)"></div>
   </div>
   <div class="tier-body open" id="tbody3">
     <div class="tier-note">Named projects &amp; signed-not-yet-onboarded. Push start dates right to stress-test timing risk.</div>
@@ -401,13 +401,13 @@ tr.net td:first-child{color:var(--t1);}
     <div class="hint">Rights issue alongside O'Rourke. Fixed Apr-26.</div>
   </div>
   <div class="sl-group" style="margin-top:4px">
-    <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$5M</span></div>
-    <input type="range" id="balmainInv" min="0" max="5" value="5" step="0.5" oninput="updateModel()">
+    <div class="sl-row"><span class="sl-label">Balmain investment</span><span class="sl-val" id="balmainInvV">$0M</span></div>
+    <input type="range" id="balmainInv" min="0" max="5" value="0" step="0.5" oninput="updateModel()">
     <div class="hint">Equity in Jul-26 — shown on cash chart. Also a lending customer (Tier 3).</div>
   </div>
   <div class="sl-group">
-    <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$1.5M</span></div>
-    <input type="range" id="reRaise" min="0" max="2" value="1.5" step="0.25" oninput="updateModel()">
+    <div class="sl-row"><span class="sl-label">RE platform raise</span><span class="sl-val" id="reRaiseV">$0M</span></div>
+    <input type="range" id="reRaise" min="0" max="2" value="0" step="0.25" oninput="updateModel()">
     <div class="hint">REIV $750K + other investors</div>
   </div>
 </div>
@@ -419,8 +419,8 @@ tr.net td:first-child{color:var(--t1);}
 
   <div class="spills" id="spills">
     <div class="spill"><span class="dot" style="background:var(--t1)"></span>Tier 1 <span class="pct" id="sp1">ON · 100%</span></div>
-    <div class="spill"><span class="dot" style="background:var(--t2)"></span>Tier 2 <span class="pct" id="sp2">ON · 90%</span></div>
-    <div class="spill"><span class="dot" style="background:var(--t3)"></span>Tier 3 <span class="pct" id="sp3">ON · 75%</span></div>
+    <div class="spill" style="opacity:0.4"><span class="dot" style="background:var(--t2)"></span>Tier 2 <span class="pct" id="sp2">OFF · 90%</span></div>
+    <div class="spill" style="opacity:0.4"><span class="dot" style="background:var(--t3)"></span>Tier 3 <span class="pct" id="sp3">OFF · 75%</span></div>
   </div>
 
   <div class="view-tabs">
@@ -885,7 +885,7 @@ const ACTUALS = {
   other:     [0,     154,   538,   385,   171,   900,   900,   450,   450  ],
 };
 
-let tierOn=[true,true,true];
+let tierOn=[true,false,false];
 let panelOpen=[true,true,true];
 
 // Core team — always on as a group
