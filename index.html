@@ -1359,10 +1359,13 @@ function buildRevenue(){
     return w;
   });
 
-  // Core wages with annual growth tiers (from Payroll sheet: 4% → 8% → 12%)
+  // Core wages — flat monthly salary with simple annual step increases
+  // Year 1 (Apr-26 to Mar-27, months 0-11): base salary
+  // Year 2 (Apr-27 to Dec-27, months 12-20): base + wage growth %
+  const wageGrowthRate = gv('wageGrowth') / 100; // e.g. 0.04 = 4%
   const coreWages = MONTHS.map((_,i)=>{
-    const g = i<3?0:i<9?0.04:i<15?0.08:0.12;
-    return (coreBaseSalary/12)*(1+g/12*i) + futureHireWages[i];
+    const annualMultiplier = i < 12 ? 1.0 : 1.0 + wageGrowthRate;
+    return (coreBaseSalary/12) * annualMultiplier + futureHireWages[i];
   });
 
   // Super on headcount wages
@@ -1375,12 +1378,13 @@ function buildRevenue(){
   const ohdBase=[69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
   const ohd=ohdBase.map(v=>v*ohdMult);
 
-  // Cost of sales — base from Excel P&L plus MBANSW rev share (60% of $100/contract)
-  // Recalculate MBANSW monthly contracts here (same formula, avoids scope issue)
-  const cosBbase=[14177,16303,18749,21561,49995,75195,108795,150795,192795,222492,239885,257278,270767,275264,279760,279760,279760,279760,279760,279760,279760];
+  // Cost of sales — scales proportionally with total revenue
+  // Base CoS rate derived from actuals (~18% of revenue from P&L)
+  // Plus MBANSW rev share ($60/contract, calculated separately)
+  const cosBbase = totalRev.map(v => v * 0.18); // 18% CoS rate on operating revenue
   const mbanswCoS = MONTHS.map((_,i)=>{
     if(i<sMbansw) return 0;
-    return Math.min(1,(i-sMbansw+1)/12) * 25000/12 * 60; // $60/contract CoS
+    return Math.min(1,(i-sMbansw+1)/12) * 25000/12 * 60;
   });
   const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
   // Office expense — $2K/month from Jul-26 if any Balmain investment received
