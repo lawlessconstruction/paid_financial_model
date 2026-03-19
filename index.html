@@ -430,6 +430,7 @@ tr.net td:first-child{color:var(--t1);}
     <div class="tab" onclick="showView('timing')">📅 Project Timing</div>
     <div class="tab" onclick="showView('bs')">⚖️ Balance Sheet</div>
     <div class="tab" onclick="showView('assumptions')">🔧 Assumptions</div>
+    <div class="tab" onclick="showView('full')" style="background:rgba(37,99,235,0.15);border-color:var(--accent)">📋 Full Report</div>
   </div>
 
   <div class="kpi-grid">
@@ -845,6 +846,13 @@ tr.net td:first-child{color:var(--t1);}
       </div>
     </div>
 
+  </div>
+
+  <!-- FULL REPORT VIEW -->
+  <div id="view-full" style="display:none">
+    <div id="full-report-content">
+      <!-- built dynamically by buildFullReport() -->
+    </div>
   </div>
 
 </div>
@@ -1998,15 +2006,167 @@ function togglePanel(n){
   document.getElementById('tbody'+n).className='tier-body '+(panelOpen[n-1]?'open':'');
 }
 function showView(v){
-  ['summary','pl','cashflow','timing','bs','assumptions'].forEach(n=>{
+  ['summary','pl','cashflow','timing','bs','assumptions','full'].forEach(n=>{
     document.getElementById('view-'+n).style.display=n===v?'':'none';
   });
   document.querySelectorAll('.tab').forEach((t,i)=>{
-    t.classList.toggle('active',['summary','pl','cashflow','timing','bs','assumptions'][i]===v);
+    t.classList.toggle('active',['summary','pl','cashflow','timing','bs','assumptions','full'][i]===v);
   });
+  if(v==='full') buildFullReport();
 }
 
-// Default start month for each project selector
+function buildFullReport(){
+  const el = document.getElementById('full-report-content');
+  if(!el) return;
+
+  // Helper to clone a table from another view
+  function cloneTable(id){
+    const src = document.getElementById(id);
+    return src ? src.outerHTML.replace(/id="[^"]*"/g,'') : '<p style="color:var(--text3)">No data</p>';
+  }
+
+  // Helper section heading
+  function sec(title, color='var(--text)'){
+    return `<div style="margin:32px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--border)">
+      <span style="font-family:'DM Serif Display',serif;font-size:20px;color:${color}">${title}</span>
+    </div>`;
+  }
+
+  // Helper sub-heading
+  function sub(title){
+    return `<div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin:20px 0 8px">${title}</div>`;
+  }
+
+  let h = `<div style="padding:8px 0 40px">`;
+
+  // ── KPIs ──
+  h += sec('Financial Summary');
+  h += `<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+    ${document.getElementById('k1').closest('.kpi-card').outerHTML}
+    ${document.getElementById('k2').closest('.kpi-card').outerHTML}
+    ${document.getElementById('k3').closest('.kpi-card').outerHTML}
+    ${document.getElementById('k4').closest('.kpi-card').outerHTML}
+  </div>`;
+
+  // ── ANNUAL SUMMARY TABLE ──
+  h += sub('Annual Revenue Summary');
+  h += `<div class="tbl-card" style="margin-bottom:24px"><div class="tbl-wrap">${cloneTable('tblSummary')}</div></div>`;
+
+  // ── P&L ──
+  h += sec('P&L — Monthly Detail','var(--t1)');
+  h += `<div class="tbl-card" style="margin-bottom:24px"><div class="tbl-hdr">P&L — Monthly Detail <span style="font-size:9px;color:var(--text3)">Scroll → for full period</span></div><div class="tbl-wrap">${cloneTable('tblPL')}</div></div>`;
+
+  // ── CASH RUNWAY ──
+  h += sec('Cash Runway — Monthly','var(--t2)');
+  h += `<div class="tbl-card" style="margin-bottom:24px"><div class="tbl-hdr">Cashflow Statement <span style="font-size:9px;color:var(--text3)">Opening Apr-26: $388K</span></div><div class="tbl-wrap">${cloneTable('tblCash')}</div></div>`;
+
+  // ── PROJECT TIMING ──
+  h += sec('Project Timing','var(--t3)');
+  h += `<div class="tbl-card" style="margin-bottom:24px"><div class="tbl-hdr">Project Timing — Monthly Revenue by Project</div><div class="tbl-wrap">${cloneTable('tblTiming')}</div></div>`;
+
+  // ── BALANCE SHEET ──
+  h += sec('Balance Sheet');
+  h += `<div class="tbl-card" style="margin-bottom:24px"><div class="tbl-hdr">Balance Sheet — Monthly Forecast</div><div class="tbl-wrap">${cloneTable('tblBS')}</div></div>`;
+
+  // ── WRITTEN ASSUMPTIONS ──
+  h += sec('Model Assumptions &amp; Revenue Mechanics','#60a5fa');
+  h += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:0 32px;font-size:12px;line-height:1.7;color:var(--text2)">
+  <div>`;
+
+  // Tier 1
+  h += `<div style="background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:6px;padding:14px;margin-bottom:14px">
+    <div style="font-weight:700;color:var(--t1);margin-bottom:8px;font-size:13px">TIER 1 — Contracted</div>
+    <div style="font-weight:600;color:var(--text);margin-bottom:4px">Trilogy &amp; Remara ($50M/qtr each)</div>
+    <ul style="margin:0 0 10px 16px;padding:0">
+      <li>Platform fee 0.2% on contracted volume</li>
+      <li>Subcontractor security fee 0.3% × 80% allocation</li>
+      <li>Dual retention yield — Pool 1: funder withholds up to 5% from builder; Pool 2: builder withholds up to 5% from subcontractors. Both earn 4% p.a.</li>
+      <li>Transitory yield: funds sit avg 5 days on platform at 4% p.a.</li>
+      <li>Early release fees: 0.07%/day × 30 days × adoption % (ramps 0→30% over 9 months)</li>
+      <li>Volume ramp: 40% in Apr-26 → 100% by Jan-27</li>
+    </ul>
+    <div style="font-weight:600;color:var(--text);margin-bottom:4px">MBA / ABIC Contract Fees</div>
+    <ul style="margin:0 0 10px 16px;padding:0">
+      <li>~2,000 contracts/yr at $179/contract avg. Currently ~20% penetration (~400 contracts)</li>
+      <li>Revenue from actual P&amp;L, scales with penetration slider</li>
+    </ul>
+    <div style="font-weight:600;color:var(--text);margin-bottom:4px">MBA / ABIC Financial Features</div>
+    <ul style="margin:0 0 0 16px;padding:0">
+      <li>Avg contract value $2M. Currently 1% uptake → target 5% over 24 months</li>
+      <li>Generates: subcon fee + dual retention yield + transitory yield</li>
+    </ul>
+  </div>`;
+
+  // Tier 2
+  h += `<div style="background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:6px;padding:14px;margin-bottom:14px">
+    <div style="font-weight:700;color:var(--t2);margin-bottom:8px;font-size:13px">TIER 2 — Alliance &amp; RE Contracted</div>
+    <div style="font-weight:600;color:var(--text);margin-bottom:4px">MBANSW Licensing</div>
+    <ul style="margin:0 0 10px 16px;padding:0">
+      <li>25,000 contracts/yr × $100 gross, 60% CoS (rev share to MBANSW) = $40/contract net</li>
+      <li>Ramps to 100% penetration over 12 months from Sep-26</li>
+      <li>Financial features (5% uptake): subcon fee + transitory yield on $750K avg contracts. No retention.</li>
+    </ul>
+    <div style="font-weight:600;color:var(--text);margin-bottom:4px">Paid.RE — Deposit Float Yield</div>
+    <ul style="margin:0 0 0 16px;padding:0">
+      <li><strong style="color:var(--text)">Jellis Craig:</strong> 12,000 sales/yr × $1M avg → $240M deposit pool → ~$800K/month at full ramp</li>
+      <li><strong style="color:var(--text)">Marshall White:</strong> 3,000 × $3M avg → $180M pool → ~$600K/month</li>
+      <li><strong style="color:var(--text)">REIV:</strong> 30,000 × 10% uptake × $800K → $48M pool → ~$160K/month</li>
+      <li>Mechanic: 10% deposit held 60 days on platform, yield at 4% p.a.</li>
+      <li>All three onboard over 12 months from Jan-27</li>
+    </ul>
+  </div>`;
+
+  h += `</div><div>`;
+
+  // Tier 3
+  h += `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;padding:14px;margin-bottom:14px">
+    <div style="font-weight:700;color:var(--t3);margin-bottom:8px;font-size:13px">TIER 3 — Named Pipeline</div>
+    <p style="margin:0 0 8px;color:var(--text3);font-size:11px">All funders generate: subcon fee (0.3%×80%) + dual retention yield + transitory yield + early release. No upfront platform fee. Onboarding ramp: 10%→30%→60%→100% over 4 months.</p>
+    <ul style="margin:0 0 10px 16px;padding:0">
+      <li><strong style="color:var(--text)">Avari:</strong> $30M · 10-month project draw</li>
+      <li><strong style="color:var(--text)">Moda:</strong> $100M · 10-month project draw</li>
+      <li><strong style="color:var(--text)">Radius:</strong> $25M/qtr ongoing</li>
+      <li><strong style="color:var(--text)">Portside:</strong> $20M/qtr ongoing</li>
+      <li><strong style="color:var(--text)">LogiSpace:</strong> $150M project + $2B additional pipeline over 12 months</li>
+      <li><strong style="color:var(--text)">Plenary #1, #2, #3:</strong> $150M each, staggered starts</li>
+      <li><strong style="color:var(--text)">Balmain:</strong> ~$200M/month lending. Also equity investor $5M Jul-26</li>
+      <li><strong style="color:var(--text)">Alceon:</strong> ~$200M/month lending</li>
+      <li><strong style="color:var(--text)">AMAL:</strong> $9B float × 0.2% spread ÷ 12 = $1.5M/month at full ramp. Float yield spread only — no construction mechanics.</li>
+    </ul>
+  </div>`;
+
+  // Capital Events
+  h += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:14px">
+    <div style="font-weight:700;color:var(--text);margin-bottom:8px;font-size:13px">Capital Events</div>
+    <ul style="margin:0 0 0 16px;padding:0">
+      <li><strong style="color:var(--text)">O'Rourke $1M + Hirst $100K:</strong> Rights issue, Apr-26</li>
+      <li><strong style="color:var(--text)">Balmain up to $5M:</strong> Equity, Jul-26 (slider controlled)</li>
+      <li><strong style="color:var(--text)">R&amp;D Grant $600K:</strong> Sep-26 and Sep-27</li>
+      <li><strong style="color:var(--text)">AMAL loan repayment $600K:</strong> Sep-26 (offsets grant)</li>
+      <li><strong style="color:var(--text)">RE Platform raise $1.5M:</strong> Oct-26 + Nov-26 (slider controlled)</li>
+      <li><strong style="color:var(--text)">Convertible note $60K:</strong> Repayment Jul-26</li>
+      <li><strong style="color:var(--text)">Secured loan $420K:</strong> Repayment Aug-27</li>
+    </ul>
+  </div>`;
+
+  // Cost base
+  h += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:14px">
+    <div style="font-weight:700;color:var(--text);margin-bottom:8px;font-size:13px">Cost Base</div>
+    <ul style="margin:0 0 0 16px;padding:0">
+      <li><strong style="color:var(--text)">Core team (6):</strong> Chen $170K · Bartram $150K · Cohen $150K · Nourozi $100K · Lin $100K · Lawless $80K = $750K/yr</li>
+      <li>Super 12% · Payroll tax 4.85% (Vic, from Jul-26)</li>
+      <li>Overhead: ~$67K/month base from actuals (subscriptions, dev subcontractors, accounting, insurance)</li>
+      <li>Office: $2K/month from Jul-26 if Balmain investment > $0</li>
+      <li><strong style="color:var(--text)">Future hires (10):</strong> Activated proportionally — $6.5M total investment (Balmain + RE raise) = all 10 hires. $0 = no new hires. Starting Jul-26, one per month thereafter.</li>
+    </ul>
+  </div>`;
+
+  h += `</div></div></div>`;
+
+  el.innerHTML = h;
+}
+
+
 // MONTHS index: 0=Apr-26, 1=May-26, 2=Jun-26, 3=Jul-26, 4=Aug-26, 5=Sep-26,
 //               6=Oct-26, 7=Nov-26, 8=Dec-26, 9=Jan-27, 10=Feb-27, 11=Mar-27,
 //               12=Apr-27, 13=May-27, 14=Jun-27, 15=Jul-27, 16=Aug-27, 17=Sep-27
