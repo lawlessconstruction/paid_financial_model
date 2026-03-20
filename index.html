@@ -274,9 +274,14 @@ tr.net td:first-child{color:var(--t1);}
         <select class="proj-start" id="s_mba" onchange="updateModel()"></select></div>
     </div>
     <div class="sl-group" style="margin-top:9px">
-      <div class="sl-row"><span class="sl-label">MBA/ABIC penetration (of 2,000)</span><span class="sl-val" id="mbaAdoptV">20%</span></div>
+      <div class="sl-row"><span class="sl-label">MBA/ABIC penetration — current</span><span class="sl-val" id="mbaAdoptV">20%</span></div>
       <input type="range" id="mbaAdopt" min="10" max="100" value="20" step="5" oninput="updateModel()">
       <div class="hint">~400 contracts now (20%) — ramping. Scale = contracts being processed.</div>
+    </div>
+    <div class="sl-group">
+      <div class="sl-row"><span class="sl-label">MBA/ABIC penetration — target</span><span class="sl-val" id="mbaAdoptTargetV">40%</span></div>
+      <input type="range" id="mbaAdoptTarget" min="10" max="100" value="40" step="5" oninput="updateModel()">
+      <div class="hint">Target penetration by end of forecast (Dec-27, month 21). Ramps linearly from current.</div>
     </div>
     <div class="sl-group">
       <div class="sl-row"><span class="sl-label">Financial features — current uptake</span><span class="sl-val" id="mbaFinAdoptV">1%</span></div>
@@ -985,8 +990,15 @@ function gv(id){return parseFloat(document.getElementById(id).value);}
 
 function buildRevenue(){
   const d1=tierOn[0]?gd('d1'):0, d2=tierOn[1]?gd('d2'):0, d3=tierOn[2]?gd('d3'):0;
-  const wg=gv('wageGrowth'), mbaA=gv('mbaAdopt')/100; // now 0.20 = 20% of 2,000 contracts
+  const wg=gv('wageGrowth');
   const bInv=gv('balmainInv'), reR=gv('reRaise')*1e6;
+
+  // MBA/ABIC penetration ramps linearly from current to target over 21-month forecast
+  const mbaAdoptCurrent = gv('mbaAdopt')/100;
+  const mbaAdoptTarget  = gv('mbaAdoptTarget')/100;
+  const mbaAArr = MONTHS.map((_,i) =>
+    mbaAdoptCurrent + (mbaAdoptTarget - mbaAdoptCurrent) * (i / (N-1))
+  );
 
   // Fee rate assumptions (from Assumptions tab — fall back to defaults if not rendered yet)
   function gva(id, def){ const el=document.getElementById(id); return el?parseFloat(el.value):def; }
@@ -1132,29 +1144,24 @@ function buildRevenue(){
   // Early release ramps from 0% as feature comes online — reaches full erAdopt by month 9
   t1parts.earlyRel  = MONTHS.map((_,i)=>contractedV[i]*ER_RAMP[i]*erAdopt*erDays*erRate);
 
-  // MBA/ABIC contract fees (from actual P&L — real revenue already earned)
-  // ~2,000 contracts/yr pool, avg $179/contract incl GST
-  // mbaA slider = penetration % of pool (default 20% = ~400 contracts)
-  const mbaScale = mbaA / 0.20;
+  // MBA/ABIC contract fees — penetration ramps from current to target over forecast
   const mbaB=[1089,1197.9,1317.69,1449.46,1594.40,1753.85,1841.54,1933.61,2030.30,2131.81,2238.40,2350.32,2467.84,2591.23,2720.79,2856.83,2999.67,3149.65,3307.14,3472.49,3646.12];
   const abcB=[6013.68,7216.42,8659.70,10391.64,12469.97,14963.97,17208.56,19789.84,22758.32,26172.07,30097.88,34612.56,38073.82,41881.20,46069.32,50676.25,55743.88,61318.26,67450.09,74195.10,81614.61];
-  t1parts.mbaAbic=MONTHS.map((_,i)=>i>=sMba?(mbaB[i]+abcB[i])*mbaScale:0);
+  t1parts.mbaAbic=MONTHS.map((_,i)=>{
+    if(i<sMba) return 0;
+    const mbaScale = mbaAArr[i] / 0.20; // scale relative to 20% baseline from actuals
+    return (mbaB[i]+abcB[i])*mbaScale;
+  });
 
-  // MBA/ABIC FINANCIAL FEATURES
-  // Avg contract value = $2M. Currently 1% uptake, ramping to 5% over ~24 months.
-  // Volume on financial features = contracts active × avg contract value × monthly draw rate
-  // Assume monthly draw = contract value / 12 (spread evenly)
-  const mbaFinAdopt   = gva('a_mbaFinAdopt', 1)/100;   // current: 1%
-  const mbaFinTarget  = gva('a_mbaFinTarget', 5)/100;  // target: 5% over 24 months
-  const mbaAvgContract = 2e6;                           // $2M avg contract value
+  // MBA/ABIC FINANCIAL FEATURES — uses ramping penetration
+  const mbaFinAdopt   = gva('a_mbaFinAdopt', 1)/100;
+  const mbaFinTarget  = gva('a_mbaFinTarget', 5)/100;
+  const mbaAvgContract = 2e6;
   const mbaContractsActive = MONTHS.map((_,i)=>{
     if(i<sMba) return 0;
-    // Contracts penetration ramps with mbaA (already modelled)
-    // Financial feature adoption ramps from mbaFinAdopt to mbaFinTarget over 24 months
     const mo = i - sMba;
     const finPct = Math.min(mbaFinTarget, mbaFinAdopt + (mbaFinTarget - mbaFinAdopt) * mo / 24);
-    // Active contracts using financial features = total pool × penetration × fin adoption
-    return 2000 * mbaA * finPct;
+    return 2000 * mbaAArr[i] * finPct; // uses ramping penetration
   });
   // Monthly construction volume flowing through financial features
   const mbaFinVol = mbaContractsActive.map(n => n * mbaAvgContract / 12);
@@ -1785,6 +1792,8 @@ function updateModel(){
   document.getElementById('d2v').textContent=document.getElementById('d2').value+'%';
   document.getElementById('d3v').textContent=document.getElementById('d3').value+'%';
   document.getElementById('mbaAdoptV').textContent=document.getElementById('mbaAdopt').value+'%';
+  const mbaAdoptTargetEl=document.getElementById('mbaAdoptTarget');
+  if(mbaAdoptTargetEl) document.getElementById('mbaAdoptTargetV').textContent=mbaAdoptTargetEl.value+'%';
   const mbaFinAdoptEl=document.getElementById('a_mbaFinAdopt');
   if(mbaFinAdoptEl) document.getElementById('mbaFinAdoptV').textContent=mbaFinAdoptEl.value+'%';
   const mbaFinTargetEl=document.getElementById('a_mbaFinTarget');
