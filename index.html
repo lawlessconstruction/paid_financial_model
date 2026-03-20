@@ -1855,101 +1855,102 @@ function updateModel(){
 function buildBS(d){
   // Opening balances Apr-26 (from actuals in Excel)
   const OB = {
-    cash:         492748,
-    cashOnHand:   45,
-    testAcct:     1000,
-    ip:           1938155,
-    acctPayable:  -37939,
-    gstLiab:      -60972,
-    paygLiab:     -68799,
-    sundryCreditors: -9910,
-    superPayable: -6760,
+    cash:             492748,
+    cashOnHand:       45,
+    testAcct:         1000,
+    ip:               1938155,
+    acctPayable:      -37939,
+    gstLiab:          -60972,
+    paygLiab:         -68799,
+    sundryCreditors:  -9910,
+    superPayable:     -6760,
     interEntityLoans: -2215817,
-    shareCapital: -6833507,
+    shareCapital:     -6833507,
     retainedEarnings: 5252188,
-    openingNetIncome: 62175,   // Mar-26 net income already in retained
+    openingNetIncome: 62175,
   };
 
-  // Monthly GST: ~10% of revenue collected, ~10% of expenses claimable, net payable quarterly
-  // PAYG: from payroll base, cleared quarterly
-  // Super: from payroll, cleared quarterly (Mar/Jun/Sep/Dec)
-  const QMONTHS = [2,5,8,11,14,17,20]; // Jun,Sep,Dec,Mar,Jun,Sep,Dec -- settlement months
+  // Quarters where GST/PAYG/Super are settled (months 2,5,8,11,14,17,20 = Jun,Sep,Dec...)
+  const QMONTHS = [2,5,8,11,14,17,20];
 
-  // Build rolling BS month by month
   const bs = [];
-  let cash = OB.cash;
-  let retEarnings = OB.retainedEarnings + OB.openingNetIncome; // rolled Apr opening
-  let gstAccrual = OB.gstLiab;
-  let paygAccrual = OB.paygLiab;
-  let superAccrual = OB.superPayable;
-  let acctPay = OB.acctPayable;
-  let interEntity = OB.interEntityLoans;
-  let shareCapital = OB.shareCapital;
-  // RE raise adds to share capital in months 15+16
+  let cash         = OB.cash;
+  // Retained earnings: start from opening balance (already includes prior periods)
+  let retEarnings  = OB.retainedEarnings + OB.openingNetIncome;
+  let gstAccrual   = OB.gstLiab;       // negative = liability
+  let paygAccrual  = OB.paygLiab;      // negative = liability
+  let superAccrual = OB.superPayable;  // negative = liability
+  let acctPay      = OB.acctPayable;   // negative = liability
+  let interEntity  = OB.interEntityLoans; // negative = liability (inter-entity loans payable)
+  let shareCapital = OB.shareCapital;  // negative in standard accounting = equity source
+
   const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
 
   for(let i=0;i<N;i++){
-    // Cash moves with net cashflow
+
+    // ── CASH ── rolls forward with full cashflow (EBITDA + equity + grants - repayments)
     cash += d.cashFlow[i];
 
-    // Retained earnings accumulate net income (EBITDA is our proxy)
-    retEarnings += d.ebitda[i];
+    // ── RETAINED EARNINGS ── accumulate net income only (EBITDA + grants, not equity raises)
+    // P&L items: revenue - cos - expenses + grants - loan interest (not principal)
+    const netIncome = d.ebitda[i] + d.rdGrant[i];
+    retEarnings += netIncome;
 
-    // Accruals: GST ~9% of rev - 10% of opex
-    const gstRev = d.totalRev[i]*0.09;
-    const gstExp = (d.cosB[i]+d.exp[i])*0.10;
-    gstAccrual -= (gstRev - gstExp); // net accrual (liability grows)
-    if(QMONTHS.includes(i)){ gstAccrual = 0; } // settled quarterly (simplified)
+    // ── GST ACCRUAL ──
+    // Collect ~10% of revenue (liability increases), claim ~10% of expenses (reduces liability)
+    // Net GST payable accumulates monthly, clears on settlement quarters
+    const gstCollected  =  d.totalRev[i] * 0.10;  // owed to ATO
+    const gstCreditable = (d.cosB[i] + d.exp[i]) * 0.10; // input tax credits
+    gstAccrual -= (gstCollected - gstCreditable);  // liability grows (more negative)
+    if(QMONTHS.includes(i)){
+      // Cash already paid GST via cashFlow approximation; reset accrual
+      gstAccrual = -(d.totalRev[i] * 0.02); // small residual after settlement
+    }
 
-    // PAYG accrual from wages
-    const paygMonthly = d.exp[i]*0.30*0.325; // ~30% wages × 32.5% PAYG
-    paygAccrual -= paygMonthly;
-    if(QMONTHS.includes(i)){ paygAccrual = OB.paygLiab * 0.3; } // partial reset
+    // ── PAYG WITHHOLDING ──
+    // ~32.5% of estimated wages component, cleared quarterly
+    const wagesEst = d.exp[i] * 0.55; // ~55% of opex is wages
+    paygAccrual -= wagesEst * 0.325;
+    if(QMONTHS.includes(i)){ paygAccrual = -(wagesEst * 0.1); } // small residual
 
-    // Super: 12% of wages, cleared quarterly
-    const superMonthly = d.exp[i]*0.30*0.12;
-    superAccrual -= superMonthly;
+    // ── SUPERANNUATION ──
+    // 12% of wages, cleared quarterly
+    superAccrual -= wagesEst * 0.12;
     if(QMONTHS.includes(i)){ superAccrual = 0; }
 
-    // Accounts payable ~= 1 month of opex/30 days
-    acctPay = -(d.cosB[i]+d.exp[i])*0.20;
+    // ── ACCOUNTS PAYABLE ── ~30 days of cost base outstanding
+    acctPay = -((d.cosB[i] + d.exp[i]) * 0.25);
 
-    // Inter-entity loans reduce as business becomes self-funding
-    // Reduce by ~$60K/month once cashflow positive, faster when profitable
-    const reduction = d.ebitda[i] > 0 ? Math.min(60000, d.ebitda[i]*0.1) : 0;
-    interEntity = Math.min(0, interEntity + reduction);
+    // ── INTER-ENTITY LOANS ──
+    // Reduce gradually as business self-funds; faster when generating positive cash
+    if(d.cashFlow[i] > 0){
+      const paydown = Math.min(Math.abs(interEntity), d.cashFlow[i] * 0.05);
+      interEntity += paydown; // reduces liability (moves toward zero)
+    }
+    interEntity = Math.min(0, interEntity); // can't go positive
 
-    // O'Rourke $1M + Hirst $100K in Apr-26 (month 0)
-    if(i===0) shareCapital -= (1000000 + 100000);
-    // Balmain investment in Jul-26 (month 3)
-    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
-    // RE raise in months 15+16
-    if(i===6||i===7) shareCapital -= reRaiseTotal/2;
+    // ── SUNDRY CREDITORS ── wind down over 12 months
+    const sundryCreditors = i < 12 ? OB.sundryCreditors * (1 - i/12) : 0;
 
-    // Sundry creditors decline (from model)
-    const sundryCreditors = i<12 ? OB.sundryCreditors*(1-i/12) : 0;
+    // ── SHARE CAPITAL ── equity raises add to share capital (negative = issued capital)
+    if(i===0) shareCapital -= (1000000 + 100000);          // O'Rourke + Hirst Apr-26
+    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6; // Balmain Jul-26
+    if(i===6||i===7) shareCapital -= reRaiseTotal/2;        // RE raise Oct-Nov 26
 
-    // ASSETS
-    const totalCurrentAssets = cash + OB.cashOnHand + OB.testAcct;
-    const totalAssets = totalCurrentAssets + OB.ip;
-
-    // LIABILITIES
-    const totalCurrentLiab = acctPay + gstAccrual + paygAccrual + superAccrual + sundryCreditors + interEntity;
-
-    // EQUITY
-    const netIncome = d.ebitda[i];
-    const totalEquity = shareCapital + retEarnings;
-    const totalLiabEquity = totalCurrentLiab + totalEquity;
+    // ── TOTALS ──
+    const totalCurrentAssets  = cash + OB.cashOnHand + OB.testAcct;
+    const totalAssets         = totalCurrentAssets + OB.ip;
+    const totalCurrentLiab    = acctPay + gstAccrual + paygAccrual + superAccrual
+                                + sundryCreditors + interEntity;
+    const totalEquity         = shareCapital + retEarnings;
+    const totalLiabEquity     = totalCurrentLiab + totalEquity;
 
     bs.push({
-      // Assets
       cash, ip:OB.ip, totalCurrentAssets, totalAssets,
-      // Liabilities
-      acctPay, gstAccrual, paygAccrual, superAccrual, sundryCreditors, interEntity, totalCurrentLiab,
-      // Equity
+      acctPay, gstAccrual, paygAccrual, superAccrual,
+      sundryCreditors, interEntity, totalCurrentLiab,
       shareCapital, retEarnings, totalEquity, totalLiabEquity,
-      // Check
-      checkDiff: totalAssets + totalLiabEquity,
+      checkDiff: totalAssets + totalLiabEquity, // should be ~0
     });
   }
 
