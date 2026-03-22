@@ -890,6 +890,26 @@ const ACTUALS = {
   other:     [0,     154,   538,   385,   171,   900,   900,   450,   450  ],
 };
 
+// Balance Sheet actuals Jul-25 to Mar-26 (from DOT_BS-Forecast sheet)
+const BS_ACTUALS = {
+  cash:         [376896, 68480,  160887, 69041,  76103,  50103,  5789,   306193, 540513],
+  cashOnHand:   [60,     45,     45,     45,     45,     45,     45,     45,     45    ],
+  testAcct:     [1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000  ],
+  ip:           [328261, 328261, 328261, 328261, 328261, 634551, 876644, 876644, 1938155],
+  totalAssets:  [706217, 397786, 490193, 498347, 405409, 685699, 883478, 1183882,2479713],
+  acctPay:      [-75680, -44750, -46575, -50423, -53917, -159065,-164830,-324532,-37902],
+  gstLiab:      [18444,  22671,  2860,   -49448, -46390, -46821, -47026, -49498, -54194],
+  paygLiab:     [-201554,-215681,-28016, -42070, -56124, -62624, -62949, -62949, -62949],
+  superPay:     [-65236, -71736, -6500,  -13000, -19500, -26000, -6500,  -6760,  -6760 ],
+  sundryC:      [-58119, -52190, -40331, -36027, -33910, -29110, -24310, -19510, -14710],
+  interEntity:  [-340000,-400000,-483225,16775,  16775,  -200000,-400000,-600000,-600000],
+  totalLiab:    [-1226324,-1149295,-676211,-248617,-267490,-523620,-705615,-1063249,-776515],
+  shareCapital: [-5127912,-5127912,-5127912,-5127912,-5127912,-5233507,-5333507,-5333507,-6833507],
+  retEarnings:  [5617382,5617382,5617382,5617382,5617382,4991896,5071428,5155643,5212873],
+  netIncome:    [129140, 263952, -301549,-737297,-625486, 79532,  84215,  57230,  39315 ],
+  totalEquity:  [618610, 753422, 187921, -247827,-136016,-162079,-177864,-120634,-1581319],
+  totalLiabEq:  [-706217,-397786,-490193,-498347,-405409,-685699,-883479,-1183883,-2357833],
+};
 let tierOn=[true,false,false];
 let panelOpen=[true,true,true];
 
@@ -1982,22 +2002,52 @@ function buildBS(d){
     {net:'TOTAL LIABILITIES + EQUITY',  key:'totalLiabEquity'},
   ];
 
-  let h='<thead><tr><th>Line Item</th>'+MONTHS.map(m=>'<th>'+m+'</th>').join('')+'</tr></thead><tbody>';
+  // Map section keys to BS_ACTUALS keys
+  const actKeyMap = {
+    cash:           'cash',
+    ip:             'ip',
+    totalCurrentAssets: 'totalAssets', // approximation
+    totalAssets:    'totalAssets',
+    acctPay:        'acctPay',
+    gstAccrual:     'gstLiab',
+    paygAccrual:    'paygLiab',
+    superAccrual:   'superPay',
+    sundryCreditors:'sundryC',
+    interEntity:    'interEntity',
+    totalCurrentLiab:'totalLiab',
+    shareCapital:   'shareCapital',
+    retEarnings:    'retEarnings',
+    totalEquity:    'totalEquity',
+    totalLiabEquity:'totalLiabEq',
+  };
+
+  const totalCols = NA + N;
+  let h = '<thead><tr><th>Line Item</th>';
+  ACT_MONTHS.forEach(m => h += `<th style="color:var(--text3);font-style:italic">${m}</th>`);
+  MONTHS.forEach(m => h += `<th>${m}</th>`);
+  h += '</tr></thead><tbody>';
+
   for(const r of sections){
     if(r.sec){
-      h+=`<tr class="sec"><td colspan="${N+1}">${r.sec}</td></tr>`;
+      h+=`<tr class="sec"><td colspan="${totalCols+1}">${r.sec}</td></tr>`;
       continue;
     }
     const cls = r.net?'net':r.ttl?'ttl':'';
     const label = r.n||r.ttl||r.net;
     h+=`<tr class="${cls}"><td>${label}</td>`;
+
+    // Actuals columns
+    ACT_MONTHS.forEach((_,i)=>{
+      const actKey = actKeyMap[r.key];
+      const v = actKey && BS_ACTUALS[actKey] ? BS_ACTUALS[actKey][i] : 0;
+      const cellCls = r.net?'':r.pos&&v>0?'pos':!r.pos&&v<0?'neg':'';
+      h+=`<td class="${cellCls}" style="color:var(--text3);font-style:italic">${fmts(v)}</td>`;
+    });
+
+    // Forecast columns
     bs.forEach(row=>{
-      let v;
-      if(r.fixed!==undefined) v=r.fixed;
-      else v=row[r.key];
-      const isNeg = v<0;
-      const cellCls = r.net?(Math.abs(v)<1000?'':''):(r.pos&&v>0?'pos':(!r.pos&&v<0?'neg':''));
-      // For display: assets show positive, liabilities show as negative (bracketed)
+      const v = r.fixed!==undefined ? r.fixed : row[r.key];
+      const cellCls = r.net?'':(r.pos&&v>0?'pos':(!r.pos&&v<0?'neg':''));
       h+=`<td class="${cellCls}">${fmts(v)}</td>`;
     });
     h+='</tr>';
