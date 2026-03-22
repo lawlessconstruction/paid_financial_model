@@ -1966,11 +1966,12 @@ function buildBS(d){
     const totalLiabEquity     = totalCurrentLiab + totalEquity;
 
     bs.push({
-      cash, ip:OB.ip, totalCurrentAssets, totalAssets,
+      cash, cashOnHand:OB.cashOnHand, ip:OB.ip,
+      totalCurrentAssets, totalAssets,
       acctPay, gstAccrual, paygAccrual, superAccrual,
       sundryCreditors, interEntity, totalCurrentLiab,
       shareCapital, retEarnings, totalEquity, totalLiabEquity,
-      checkDiff: totalAssets + totalLiabEquity, // should be ~0
+      checkDiff: totalAssets + totalLiabEquity,
     });
   }
 
@@ -1984,8 +1985,8 @@ function buildBS(d){
   const sections = [
     {sec:'ASSETS'},
     {n:'Cash (trading account)',        key:'cash',             pos:true},
-    {n:'Cash on hand',                  fixed:OB.cashOnHand,    pos:true},
-    {n:'IP & Trademarks',               fixed:OB.ip,            pos:true},
+    {n:'Cash on hand',                  key:'cashOnHand',       pos:true},
+    {n:'IP & Trademarks',               key:'ip',               pos:true},
     {ttl:'TOTAL ASSETS',                key:'totalAssets',      pos:true},
     {sec:'LIABILITIES'},
     {n:'Accounts Payable',              key:'acctPay'},
@@ -2004,21 +2005,21 @@ function buildBS(d){
 
   // Map section keys to BS_ACTUALS keys
   const actKeyMap = {
-    cash:           'cash',
-    ip:             'ip',
-    totalCurrentAssets: 'totalAssets', // approximation
-    totalAssets:    'totalAssets',
-    acctPay:        'acctPay',
-    gstAccrual:     'gstLiab',
-    paygAccrual:    'paygLiab',
-    superAccrual:   'superPay',
-    sundryCreditors:'sundryC',
-    interEntity:    'interEntity',
-    totalCurrentLiab:'totalLiab',
-    shareCapital:   'shareCapital',
-    retEarnings:    'retEarnings',
-    totalEquity:    'totalEquity',
-    totalLiabEquity:'totalLiabEq',
+    cash:             'cash',
+    cashOnHand:       'cashOnHand',
+    ip:               'ip',
+    totalAssets:      'totalAssets',
+    acctPay:          'acctPay',
+    gstAccrual:       'gstLiab',
+    paygAccrual:      'paygLiab',
+    superAccrual:     'superPay',
+    sundryCreditors:  'sundryC',
+    interEntity:      'interEntity',
+    totalCurrentLiab: 'totalLiab',
+    shareCapital:     'shareCapital',
+    retEarnings:      'retEarnings',
+    totalEquity:      'totalEquity',
+    totalLiabEquity:  'totalLiabEq',
   };
 
   const totalCols = NA + N;
