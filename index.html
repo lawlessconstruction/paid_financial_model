@@ -895,6 +895,7 @@ const BS_ACTUALS = {
   cash:         [376896, 68480,  160887, 69041,  76103,  50103,  5789,   306193, 540513],
   cashOnHand:   [60,     45,     45,     45,     45,     45,     45,     45,     45    ],
   testAcct:     [1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000  ],
+  acctRec:      [0,      0,      0,      100000, 0,      0,      0,      0,      0     ],
   ip:           [328261, 328261, 328261, 328261, 328261, 634551, 876644, 876644, 1938155],
   totalAssets:  [706217, 397786, 490193, 498347, 405409, 685699, 883478, 1183882,2479713],
   acctPay:      [-75680, -44750, -46575, -50423, -53917, -159065,-164830,-324532,-37902],
@@ -903,12 +904,14 @@ const BS_ACTUALS = {
   superPay:     [-65236, -71736, -6500,  -13000, -19500, -26000, -6500,  -6760,  -6760 ],
   sundryC:      [-58119, -52190, -40331, -36027, -33910, -29110, -24310, -19510, -14710],
   interEntity:  [-340000,-400000,-483225,16775,  16775,  -200000,-400000,-600000,-600000],
+  // Additional liabilities present in early months — cleared by Dec-25
+  otherLiab:    [-504179,-387609,-74424, -74424, -74424, 0,      0,      0,      0     ],
   totalLiab:    [-1226324,-1149295,-676211,-248617,-267490,-523620,-705615,-1063249,-776515],
   shareCapital: [-5127912,-5127912,-5127912,-5127912,-5127912,-5233507,-5333507,-5333507,-6833507],
   retEarnings:  [5617382,5617382,5617382,5617382,5617382,4991896,5071428,5155643,5212873],
   netIncome:    [129140, 263952, -301549,-737297,-625486, 79532,  84215,  57230,  39315 ],
-  totalEquity:  [618610, 753422, 187921, -247827,-136016,-162079,-177864,-120634,-1581319],
-  totalLiabEq:  [-706217,-397786,-490193,-498347,-405409,-685699,-883479,-1183883,-2357833],
+  totalEquity:  [618610, 753422, 187921, -247827,-136016,-162079,-177864,-120634,-1459439],
+  totalLiabEq:  [-706217,-397786,-490193,-498347,-405409,-685699,-883479,-1183883,-2479713],
 };
 let tierOn=[true,false,false];
 let panelOpen=[true,true,true];
@@ -1966,10 +1969,10 @@ function buildBS(d){
     const totalLiabEquity     = totalCurrentLiab + totalEquity;
 
     bs.push({
-      cash, cashOnHand:OB.cashOnHand, ip:OB.ip,
+      cash, cashOnHand:OB.cashOnHand, acctRec:0, ip:OB.ip,
       totalCurrentAssets, totalAssets,
       acctPay, gstAccrual, paygAccrual, superAccrual,
-      sundryCreditors, interEntity, totalCurrentLiab,
+      sundryCreditors, interEntity, otherLiab:0, totalCurrentLiab,
       shareCapital, retEarnings, totalEquity, totalLiabEquity,
       checkDiff: totalAssets + totalLiabEquity,
     });
@@ -1986,6 +1989,7 @@ function buildBS(d){
     {sec:'ASSETS'},
     {n:'Cash (trading account)',        key:'cash',             pos:true},
     {n:'Cash on hand',                  key:'cashOnHand',       pos:true},
+    {n:'Accounts Receivable',           key:'acctRec',          pos:true},
     {n:'IP & Trademarks',               key:'ip',               pos:true},
     {ttl:'TOTAL ASSETS',                key:'totalAssets',      pos:true},
     {sec:'LIABILITIES'},
@@ -1995,6 +1999,7 @@ function buildBS(d){
     {n:'Superannuation Payable',        key:'superAccrual'},
     {n:'Sundry Creditors',              key:'sundryCreditors'},
     {n:'Inter-entity Loans',            key:'interEntity'},
+    {n:'Other Liabilities',             key:'otherLiab'},
     {ttl:'TOTAL LIABILITIES',           key:'totalCurrentLiab'},
     {sec:"SHAREHOLDER'S EQUITY"},
     {n:'Issued Share Capital',          key:'shareCapital'},
@@ -2007,6 +2012,7 @@ function buildBS(d){
   const actKeyMap = {
     cash:             'cash',
     cashOnHand:       'cashOnHand',
+    acctRec:          'acctRec',
     ip:               'ip',
     totalAssets:      'totalAssets',
     acctPay:          'acctPay',
@@ -2015,6 +2021,7 @@ function buildBS(d){
     superAccrual:     'superPay',
     sundryCreditors:  'sundryC',
     interEntity:      'interEntity',
+    otherLiab:        'otherLiab',
     totalCurrentLiab: 'totalLiab',
     shareCapital:     'shareCapital',
     retEarnings:      'retEarnings',
