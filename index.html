@@ -498,10 +498,10 @@ tr.net td:first-child{color:var(--t1);}
     </div>
     <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.6;padding:0 4px">
       <strong style="color:var(--text2)">Notes:</strong>
-      IP &amp; Trademarks held at $1.94M (opening carrying value, no amortisation modelled).
-      Inter-entity loans reduce as the platform becomes self-funding.
-      GST, PAYG and Super liabilities estimated from expense base, settle quarterly.
-      Share capital reflects $6.83M issued ordinary shares. Retained earnings accumulate net income monthly.
+      IP &amp; Trademarks: $1.94M existing IP + $300K AFSL licence capitalised Apr-26 (non-cash). 
+      AFSL licence is a significant intangible — own licence held at $300K carrying value.
+      Sundry creditors wind down over 12 months. GST, PAYG and Super liabilities estimated quarterly.
+      Share capital reflects issued ordinary shares plus equity raises per capital events schedule.
     </div>
   </div>
 
@@ -903,9 +903,17 @@ const BS_ACTUALS = {
   paygLiab:     [-201554,-215681,-28016, -42070, -56124, -62624, -62949, -62949, -62949],
   superPay:     [-65236, -71736, -6500,  -13000, -19500, -26000, -6500,  -6760,  -6760 ],
   sundryC:      [-58119, -52190, -40331, -36027, -33910, -29110, -24310, -19510, -14710],
-  interEntity:  [-340000,-400000,-483225,16775,  16775,  -200000,-400000,-600000,-600000],
   // Additional liabilities present in early months — cleared by Dec-25
-  otherLiab:    [-504179,-387609,-74424, -74424, -74424, 0,      0,      0,      0     ],
+  // (ATO clearing, payroll clearing, director loans etc)
+  // Calculated as: totalLiab minus all known components
+  otherLiab:    [-494179,-437609,-207649,292351, 492351, 550000, 350000, 250000, 350000],
+  // Individual loans with correct draw-down timing
+  // Convertible note: $50K taken before Jul-25, shown as $50K throughout until repaid Jul-26
+  convertibleNote:[-50000,-50000,-50000,-50000,-50000,-50000,-50000,-50000,-50000],
+  // AMAL $600K loan: drawn $200K Nov-25, $200K Dec-25, $100K Feb-26, $100K Mar-26
+  loanAMAL:     [0,      0,      0,      0,      -200000,-400000,-400000,-500000,-600000],
+  // Secured loan: $300K taken before Jul-25, shown as $300K throughout until repaid Aug-27
+  loanSecured:  [-300000,-300000,-300000,-300000,-300000,-300000,-300000,-300000,-300000],
   totalLiab:    [-1226324,-1149295,-676211,-248617,-267490,-523620,-705615,-1063249,-776515],
   shareCapital: [-5127912,-5127912,-5127912,-5127912,-5127912,-5233507,-5333507,-5333507,-6833507],
   retEarnings:  [5617382,5617382,5617382,5617382,5617382,4991896,5071428,5155643,5212873],
@@ -1881,31 +1889,35 @@ function buildBS(d){
     cash:             492748,
     cashOnHand:       45,
     testAcct:         1000,
-    ip:               1938155,
+    ip:               2238155,  // $1,938,155 existing IP + $300K AFSL licence capitalised Apr-26
     acctPayable:      -37939,
     gstLiab:          -60972,
     paygLiab:         -68799,
     sundryCreditors:  -9910,
     superPayable:     -6760,
-    interEntityLoans: -2215817,
+    // Actual loans (replacing stale $2.2M inter-entity balance):
+    convertibleNote:  -60000,   // $50K + interest, repaid Jul-26 (month 3)
+    loanAMAL:         -600000,  // $600K, repaid Sep-26 (month 5)
+    loanSecured:      -420000,  // $300K + interest, repaid Aug-27 (month 16)
     shareCapital:     -6833507,
-    retainedEarnings: 5252188,
+    retainedEarnings: 5552188,  // $5,252,188 + $300K AFSL licence non-cash capitalisation
     openingNetIncome: 62175,
   };
 
-  // Quarters where GST/PAYG/Super are settled (months 2,5,8,11,14,17,20 = Jun,Sep,Dec...)
   const QMONTHS = [2,5,8,11,14,17,20];
 
   const bs = [];
   let cash         = OB.cash;
-  // Retained earnings: start from opening balance (already includes prior periods)
   let retEarnings  = OB.retainedEarnings + OB.openingNetIncome;
-  let gstAccrual   = OB.gstLiab;       // negative = liability
-  let paygAccrual  = OB.paygLiab;      // negative = liability
-  let superAccrual = OB.superPayable;  // negative = liability
-  let acctPay      = OB.acctPayable;   // negative = liability
-  let interEntity  = OB.interEntityLoans; // negative = liability (inter-entity loans payable)
-  let shareCapital = OB.shareCapital;  // negative in standard accounting = equity source
+  let gstAccrual   = OB.gstLiab;
+  let paygAccrual  = OB.paygLiab;
+  let superAccrual = OB.superPayable;
+  let acctPay      = OB.acctPayable;
+  // Track each loan — repaid at the correct month
+  let convertibleNote = OB.convertibleNote;
+  let loanAMAL        = OB.loanAMAL;
+  let loanSecured     = OB.loanSecured;
+  let shareCapital    = OB.shareCapital;
 
   const reRaiseTotal = parseFloat(document.getElementById('reRaise').value)*1e6;
 
@@ -1944,27 +1956,25 @@ function buildBS(d){
     // ── ACCOUNTS PAYABLE ── ~30 days of cost base outstanding
     acctPay = -((d.cosB[i] + d.exp[i]) * 0.25);
 
-    // ── INTER-ENTITY LOANS ──
-    // Reduce gradually as business self-funds; faster when generating positive cash
-    if(d.cashFlow[i] > 0){
-      const paydown = Math.min(Math.abs(interEntity), d.cashFlow[i] * 0.05);
-      interEntity += paydown; // reduces liability (moves toward zero)
-    }
-    interEntity = Math.min(0, interEntity); // can't go positive
+    // ── LOAN REPAYMENTS ── each loan clears at the scheduled month
+    if(i===3)  convertibleNote = 0;   // Convertible note repaid Jul-26
+    if(i===5)  loanAMAL        = 0;   // AMAL loan repaid Sep-26
+    if(i===16) loanSecured     = 0;   // Secured loan repaid Aug-27
 
     // ── SUNDRY CREDITORS ── wind down over 12 months
     const sundryCreditors = i < 12 ? OB.sundryCreditors * (1 - i/12) : 0;
 
-    // ── SHARE CAPITAL ── equity raises add to share capital (negative = issued capital)
-    if(i===0) shareCapital -= (1000000 + 100000);          // O'Rourke + Hirst Apr-26
-    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6; // Balmain Jul-26
-    if(i===6||i===7) shareCapital -= reRaiseTotal/2;        // RE raise Oct-Nov 26
+    // ── SHARE CAPITAL ── equity raises
+    if(i===0) shareCapital -= (1000000 + 100000);
+    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
+    if(i===6||i===7) shareCapital -= reRaiseTotal/2;
 
     // ── TOTALS ──
+    const totalLoans          = convertibleNote + loanAMAL + loanSecured;
     const totalCurrentAssets  = cash + OB.cashOnHand + OB.testAcct;
     const totalAssets         = totalCurrentAssets + OB.ip;
     const totalCurrentLiab    = acctPay + gstAccrual + paygAccrual + superAccrual
-                                + sundryCreditors + interEntity;
+                                + sundryCreditors + totalLoans;
     const totalEquity         = shareCapital + retEarnings;
     const totalLiabEquity     = totalCurrentLiab + totalEquity;
 
@@ -1972,7 +1982,8 @@ function buildBS(d){
       cash, cashOnHand:OB.cashOnHand, acctRec:0, ip:OB.ip,
       totalCurrentAssets, totalAssets,
       acctPay, gstAccrual, paygAccrual, superAccrual,
-      sundryCreditors, interEntity, otherLiab:0, totalCurrentLiab,
+      sundryCreditors, convertibleNote, loanAMAL, loanSecured,
+      otherLiab:0, totalCurrentLiab,
       shareCapital, retEarnings, totalEquity, totalLiabEquity,
       checkDiff: totalAssets + totalLiabEquity,
     });
@@ -1998,8 +2009,9 @@ function buildBS(d){
     {n:'PAYG Withholdings',             key:'paygAccrual'},
     {n:'Superannuation Payable',        key:'superAccrual'},
     {n:'Sundry Creditors',              key:'sundryCreditors'},
-    {n:'Inter-entity Loans',            key:'interEntity'},
-    {n:'Other Liabilities',             key:'otherLiab'},
+    {n:'Convertible Note',              key:'convertibleNote'},
+    {n:'AMAL Loan',                     key:'loanAMAL'},
+    {n:'Secured Loan',                  key:'loanSecured'},
     {ttl:'TOTAL LIABILITIES',           key:'totalCurrentLiab'},
     {sec:"SHAREHOLDER'S EQUITY"},
     {n:'Issued Share Capital',          key:'shareCapital'},
@@ -2020,7 +2032,10 @@ function buildBS(d){
     paygAccrual:      'paygLiab',
     superAccrual:     'superPay',
     sundryCreditors:  'sundryC',
-    interEntity:      'interEntity',
+    sundryCreditors:  'sundryC',
+    convertibleNote:  'convertibleNote',
+    loanAMAL:         'loanAMAL',
+    loanSecured:      'loanSecured',
     otherLiab:        'otherLiab',
     totalCurrentLiab: 'totalLiab',
     shareCapital:     'shareCapital',
