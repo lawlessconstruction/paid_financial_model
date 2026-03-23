@@ -2296,76 +2296,56 @@ function populateDropdowns(){
 }
 
 function downloadCSV(){
-  const d = buildRevenue();
-  const allMonths = [...ACT_MONTHS, ...FORE_MONTHS];
-  const fmtN = v => v === null || v === undefined ? '' : Math.round(v).toString();
+  try {
+    const d = buildRevenue();
+    const allMonths = [...ACT_MONTHS, ...FORE_MONTHS];
+    const R = v => Math.round(v||0);
+    const rows = [];
 
-  // Helper to build a CSV section
-  function section(title, rows){
-    const lines = [`\n${title}`];
-    lines.push(['Line Item', ...allMonths].join(','));
-    rows.forEach(r => {
-      if(r.sec){ lines.push(`\n${r.sec}`); return; }
-      const label = r.n || r.ttl || r.net || '';
-      const actVals = ACT_MONTHS.map((_,i) => fmtN(r.act ? r.act[i] : 0));
-      const foreVals = FORE_MONTHS.map((_,i) => fmtN(r.neg ? -r.a[i] : r.a[i]));
-      lines.push([`"${label}"`, ...actVals, ...foreVals].join(','));
-    });
-    return lines.join('\n');
+    const hdr = ['Line Item', ...allMonths];
+    rows.push(hdr.join(','));
+
+    function addRow(label, actArr, foreArr, neg){
+      const cells = ['"'+label+'"'];
+      ACT_MONTHS.forEach((_,i)=>{ const v=(actArr&&actArr[i])||0; cells.push(R(neg?-v:v)); });
+      FORE_MONTHS.forEach((_,i)=>{ const v=(foreArr&&foreArr[i])||0; cells.push(R(neg?-v:v)); });
+      rows.push(cells.join(','));
+    }
+    function addBlank(label){ rows.push('"'+label+'"'); }
+
+    addBlank('P&L - Monthly');
+    addBlank('--- REVENUE ---');
+    addRow('Tier 1 - Contracted',  PL_ACTUALS.tier1,    d.tier1);
+    addRow('Tier 2 - Alliance+RE', PL_ACTUALS.tier2,    d.tier2);
+    addRow('Tier 3 - Pipeline',    PL_ACTUALS.tier3,    d.tier3);
+    addRow('Total Revenue',        PL_ACTUALS.totalRev, d.totalRev);
+    addRow('R&D Grant',            Array(NA).fill(0),   d.rdGrant);
+    addBlank('--- COSTS ---');
+    addRow('Cost of Sales',  PL_ACTUALS.cosB,    d.cosB,    true);
+    addRow('Opex & Wages',   PL_ACTUALS.exp,     d.exp,     true);
+    addRow('EBITDA',         PL_ACTUALS.ebitda,  d.ebitda);
+    addBlank('');
+    addBlank('CASHFLOW - Monthly');
+    addRow('Revenue',          PL_ACTUALS.totalRev,     d.totalRev);
+    addRow('Equity Raised',    Array(NA).fill(0),        d.equityIn);
+    addRow('R&D Grant',        Array(NA).fill(0),        d.rdGrant);
+    addRow('Cost of Sales',    PL_ACTUALS.cosB,          d.cosB,    true);
+    addRow('Expenses',         PL_ACTUALS.exp,           d.exp,     true);
+    addRow('Loan Repayments',  Array(NA).fill(0),        d.loanRepayments, true);
+    addRow('Net Cashflow',     PL_ACTUALS.cashFlow,      d.cashFlow);
+    addRow('Cash Balance',     PL_ACTUALS.cash,          d.cash);
+
+    const csv = 'Paid Financial Model\nGenerated: '+new Date().toLocaleDateString('en-AU')+'\n\n' + rows.join('\n');
+    const url = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'Paid_Financial_Model_'+new Date().toISOString().slice(0,10)+'.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  } catch(e) {
+    alert('CSV export error: ' + e.message);
   }
-
-  // P&L
-  const pl = section('P&L — Monthly', [
-    {sec:'Revenue'},
-    {n:'Tier 1 — Contracted',   a:d.tier1,    act:PL_ACTUALS.tier1},
-    {n:'Tier 2 — Alliance+RE',  a:d.tier2,    act:PL_ACTUALS.tier2},
-    {n:'Tier 3 — Pipeline',     a:d.tier3,    act:PL_ACTUALS.tier3},
-    {ttl:'Total Revenue',       a:d.totalRev, act:PL_ACTUALS.totalRev},
-    {n:'R&D Grant',             a:d.rdGrant,  act:Array(NA).fill(0)},
-    {sec:'Costs'},
-    {n:'Cost of Sales',         a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
-    {n:'Opex & Wages',          a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
-    {ttl:'EBITDA',              a:d.ebitda,   act:PL_ACTUALS.ebitda},
-  ]);
-
-  // Cashflow
-  const cf = section('Cash Runway — Monthly', [
-    {n:'Revenue',          a:d.totalRev,       act:PL_ACTUALS.totalRev},
-    {n:'R&D Grant',        a:d.rdGrant,        act:Array(NA).fill(0)},
-    {n:'Equity Raised',    a:d.equityIn,       act:Array(NA).fill(0)},
-    {n:'Cost of Sales',    a:d.cosB,           act:PL_ACTUALS.cosB,   neg:true},
-    {n:'Expenses',         a:d.exp,            act:PL_ACTUALS.exp,    neg:true},
-    {n:'Loan Repayments',  a:d.loanRepayments, act:Array(NA).fill(0), neg:true},
-    {ttl:'Net Cashflow',   a:d.cashFlow,       act:PL_ACTUALS.cashFlow},
-    {ttl:'Cash Balance',   a:d.cash,           act:PL_ACTUALS.cash},
-  ]);
-
-  // Revenue by tier summary (annual)
-  const annualHeader = ['Line Item','Actuals Jul25-Mar26','FY2026 Q4','FY2027','FY2028 H1'];
-  const sum = (arr, a, b) => arr.slice(a,b+1).reduce((s,v)=>s+(v||0),0);
-  const annualRows = [
-    ['Tier 1 — Contracted', sum(PL_ACTUALS.tier1,0,NA-1), sum(d.tier1,0,2), sum(d.tier1,3,14), sum(d.tier1,15,20)],
-    ['Tier 2 — Alliance+RE', sum(PL_ACTUALS.tier2,0,NA-1), sum(d.tier2,0,2), sum(d.tier2,3,14), sum(d.tier2,15,20)],
-    ['Tier 3 — Pipeline', 0, sum(d.tier3,0,2), sum(d.tier3,3,14), sum(d.tier3,15,20)],
-    ['Total Revenue', sum(PL_ACTUALS.totalRev,0,NA-1), sum(d.totalRev,0,2), sum(d.totalRev,3,14), sum(d.totalRev,15,20)],
-    ['Total Costs', sum(PL_ACTUALS.expenses,0,NA-1), sum(d.exp,0,2), sum(d.exp,3,14), sum(d.exp,15,20)],
-    ['EBITDA', sum(PL_ACTUALS.ebitda,0,NA-1), sum(d.ebitda,0,2), sum(d.ebitda,3,14), sum(d.ebitda,15,20)],
-    ['Cash Balance (period end)', PL_ACTUALS.cash[NA-1], d.cash[2], d.cash[14], d.cash[20]],
-  ];
-  const annual = '\nAnnual Summary\n' + annualHeader.join(',') + '\n' +
-    annualRows.map(r => [`"${r[0]}"`, ...r.slice(1).map(fmtN)].join(',')).join('\n');
-
-  const csv = `Paid — Investor Financial Model\nGenerated: ${new Date().toLocaleDateString('en-AU')}\n` +
-    annual + pl + cf;
-
-  const blob = new Blob([csv], {type:'text/csv'});
-  const url = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `Paid_Financial_Model_${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
 }
 
 function printReports(){
