@@ -2334,6 +2334,22 @@ function downloadCSV(){
     addRow('Loan Repayments', Array(NA).fill(0),    d.loanRepayments, true);
     addRow('Net Cashflow',    ACTUALS.ebitda,       d.cashFlow);
     addRow('Cash Balance',    ACTUALS.closingCash,  d.cash);
+    addBlank('');
+    addBlank('BALANCE SHEET - Monthly');
+    addBlank('--- ASSETS ---');
+    addRow('Cash (Trading Account)', BS_ACTUALS.cash,        d.cash);
+    addRow('Cash on Hand',           BS_ACTUALS.cashOnHand,  Array(N).fill(45));
+    addRow('IP & Trademarks',        BS_ACTUALS.ip,          Array(N).fill(2238155));
+    addRow('Total Assets',           BS_ACTUALS.totalAssets, d.cash.map(v=>v+2238155+45));
+    addBlank('--- LIABILITIES ---');
+    addRow('Accounts Payable',       BS_ACTUALS.acctPay,     Array(N).fill(0));
+    addRow('GST Liabilities',        BS_ACTUALS.gstLiab,     Array(N).fill(0));
+    addRow('PAYG Withholdings',      BS_ACTUALS.paygLiab,    Array(N).fill(0));
+    addRow('Super Payable',          BS_ACTUALS.superPay,    Array(N).fill(0));
+    addRow('Convertible Note',       BS_ACTUALS.convertibleNote, Array(N).fill(0).map((_,i)=>i<3?-60000:0));
+    addRow('AMAL Loan',              BS_ACTUALS.loanAMAL,    Array(N).fill(0).map((_,i)=>i<5?-600000:0));
+    addRow('Secured Loan',           BS_ACTUALS.loanSecured, Array(N).fill(0).map((_,i)=>i<16?-300000:0));
+    addRow('Total Equity',           BS_ACTUALS.totalEquity, Array(N).fill(0));
 
     const csv = 'Paid Financial Model\nGenerated: '+new Date().toLocaleDateString('en-AU')+'\n\n' + rows.join('\n');
     const url = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
