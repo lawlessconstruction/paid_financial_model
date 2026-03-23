@@ -2359,12 +2359,13 @@ function downloadCSV(){
     annual + pl + cf;
 
   const blob = new Blob([csv], {type:'text/csv'});
-  const url = URL.createObjectURL(blob);
+  const url = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   const a = document.createElement('a');
   a.href = url;
   a.download = `Paid_Financial_Model_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
   a.click();
-  URL.revokeObjectURL(url);
+  document.body.removeChild(a);
 }
 
 function printReports(){
