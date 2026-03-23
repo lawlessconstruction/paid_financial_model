@@ -236,6 +236,10 @@ tr.net td:first-child{color:var(--t1);}
   </div>
   <div style="display:flex;align-items:center;gap:12px">
     <span style="font-family:'DM Mono',monospace;font-size:11px;background:var(--surface2);border:1px solid var(--border);padding:5px 12px;border-radius:4px;color:var(--text2);">Apr 2026 – Dec 2027</span>
+    <button class="print-btn" style="background:var(--accent2)" onclick="downloadCSV()">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download CSV
+    </button>
     <button class="print-btn" onclick="printReports()">
       <svg viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
       Print PDF
@@ -2291,7 +2295,79 @@ function populateDropdowns(){
   });
 }
 
-function printReports(){
+function downloadCSV(){
+  const d = buildRevenue();
+  const allMonths = [...ACT_MONTHS, ...FORE_MONTHS];
+  const fmtN = v => v === null || v === undefined ? '' : Math.round(v).toString();
+
+  // Helper to build a CSV section
+  function section(title, rows){
+    const lines = [`\n${title}`];
+    lines.push(['Line Item', ...allMonths].join(','));
+    rows.forEach(r => {
+      if(r.sec){ lines.push(`\n${r.sec}`); return; }
+      const label = r.n || r.ttl || r.net || '';
+      const actVals = ACT_MONTHS.map((_,i) => fmtN(r.act ? r.act[i] : 0));
+      const foreVals = FORE_MONTHS.map((_,i) => fmtN(r.neg ? -r.a[i] : r.a[i]));
+      lines.push([`"${label}"`, ...actVals, ...foreVals].join(','));
+    });
+    return lines.join('\n');
+  }
+
+  // P&L
+  const pl = section('P&L — Monthly', [
+    {sec:'Revenue'},
+    {n:'Tier 1 — Contracted',   a:d.tier1,    act:PL_ACTUALS.tier1},
+    {n:'Tier 2 — Alliance+RE',  a:d.tier2,    act:PL_ACTUALS.tier2},
+    {n:'Tier 3 — Pipeline',     a:d.tier3,    act:PL_ACTUALS.tier3},
+    {ttl:'Total Revenue',       a:d.totalRev, act:PL_ACTUALS.totalRev},
+    {n:'R&D Grant',             a:d.rdGrant,  act:Array(NA).fill(0)},
+    {sec:'Costs'},
+    {n:'Cost of Sales',         a:d.cosB,     act:PL_ACTUALS.cosB,    neg:true},
+    {n:'Opex & Wages',          a:d.exp,      act:PL_ACTUALS.exp,     neg:true},
+    {ttl:'EBITDA',              a:d.ebitda,   act:PL_ACTUALS.ebitda},
+  ]);
+
+  // Cashflow
+  const cf = section('Cash Runway — Monthly', [
+    {n:'Revenue',          a:d.totalRev,       act:PL_ACTUALS.totalRev},
+    {n:'R&D Grant',        a:d.rdGrant,        act:Array(NA).fill(0)},
+    {n:'Equity Raised',    a:d.equityIn,       act:Array(NA).fill(0)},
+    {n:'Cost of Sales',    a:d.cosB,           act:PL_ACTUALS.cosB,   neg:true},
+    {n:'Expenses',         a:d.exp,            act:PL_ACTUALS.exp,    neg:true},
+    {n:'Loan Repayments',  a:d.loanRepayments, act:Array(NA).fill(0), neg:true},
+    {ttl:'Net Cashflow',   a:d.cashFlow,       act:PL_ACTUALS.cashFlow},
+    {ttl:'Cash Balance',   a:d.cash,           act:PL_ACTUALS.cash},
+  ]);
+
+  // Revenue by tier summary (annual)
+  const annualHeader = ['Line Item','Actuals Jul25-Mar26','FY2026 Q4','FY2027','FY2028 H1'];
+  const sum = (arr, a, b) => arr.slice(a,b+1).reduce((s,v)=>s+(v||0),0);
+  const annualRows = [
+    ['Tier 1 — Contracted', sum(PL_ACTUALS.tier1,0,NA-1), sum(d.tier1,0,2), sum(d.tier1,3,14), sum(d.tier1,15,20)],
+    ['Tier 2 — Alliance+RE', sum(PL_ACTUALS.tier2,0,NA-1), sum(d.tier2,0,2), sum(d.tier2,3,14), sum(d.tier2,15,20)],
+    ['Tier 3 — Pipeline', 0, sum(d.tier3,0,2), sum(d.tier3,3,14), sum(d.tier3,15,20)],
+    ['Total Revenue', sum(PL_ACTUALS.totalRev,0,NA-1), sum(d.totalRev,0,2), sum(d.totalRev,3,14), sum(d.totalRev,15,20)],
+    ['Total Costs', sum(PL_ACTUALS.expenses,0,NA-1), sum(d.exp,0,2), sum(d.exp,3,14), sum(d.exp,15,20)],
+    ['EBITDA', sum(PL_ACTUALS.ebitda,0,NA-1), sum(d.ebitda,0,2), sum(d.ebitda,3,14), sum(d.ebitda,15,20)],
+    ['Cash Balance (period end)', PL_ACTUALS.cash[NA-1], d.cash[2], d.cash[14], d.cash[20]],
+  ];
+  const annual = '\nAnnual Summary\n' + annualHeader.join(',') + '\n' +
+    annualRows.map(r => [`"${r[0]}"`, ...r.slice(1).map(fmtN)].join(',')).join('\n');
+
+  const csv = `Paid — Investor Financial Model\nGenerated: ${new Date().toLocaleDateString('en-AU')}\n` +
+    annual + pl + cf;
+
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Paid_Financial_Model_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+
   // Set print date
   const d = new Date();
   const el = document.getElementById('printDate');
