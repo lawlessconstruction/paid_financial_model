@@ -873,9 +873,9 @@ tr.net td:first-child{color:var(--t1);}
 <script>
 // ALL months: 8 actuals + 21 forecast = 29 total
 const ACT_MONTHS=['Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26'];
-const FORE_MONTHS=['Mar-26','Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
+const FORE_MONTHS=['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
 const MONTHS=FORE_MONTHS; // forecast model still uses 0-based FORE_MONTHS
-const N=22;
+const N=21;
 const NA=9; // number of actual months
 
 // Actuals from Excel (read-only — not affected by scenario sliders)
@@ -931,16 +931,16 @@ let coreTeamOn = true;
 
 // Future hires — 10 slots, each togglable with a start month and role/salary
 const FUTURE_HIRES = [
-  {id:'fh1', name:'Hire 1', role:'Compliance Manager', salary:120000, startMonth:4},
+  {id:'fh1', name:'Hire 1', role:'Compliance Manager', salary:120000, startMonth:3},
   {id:'fh2', name:'Hire 2', role:'CFO',                salary:120000, startMonth:4},
   {id:'fh3', name:'Hire 3', role:'Customer Support Lead', salary:120000, startMonth:4},
-  {id:'fh4', name:'Hire 4', role:'Sales / Marketing',  salary:150000, startMonth:5},
-  {id:'fh5', name:'Hire 5', role:'Dev',                salary:150000, startMonth:6},
-  {id:'fh6', name:'Hire 6', role:'Sales / Cust Support',salary:130000, startMonth:7},
-  {id:'fh7', name:'Hire 7', role:'Dev',                salary:110000, startMonth:8},
-  {id:'fh8', name:'Hire 8', role:'Sales / Cust Support',salary:110000, startMonth:9},
-  {id:'fh9', name:'Hire 9', role:'Dev',                salary:120000, startMonth:10},
-  {id:'fh10',name:'Hire 10',role:'Sales / Cust Support',salary:180000, startMonth:11},
+  {id:'fh4', name:'Hire 4', role:'Sales / Marketing',  salary:150000, startMonth:4},
+  {id:'fh5', name:'Hire 5', role:'Dev',                salary:150000, startMonth:5},
+  {id:'fh6', name:'Hire 6', role:'Sales / Cust Support',salary:130000, startMonth:6},
+  {id:'fh7', name:'Hire 7', role:'Dev',                salary:110000, startMonth:7},
+  {id:'fh8', name:'Hire 8', role:'Sales / Cust Support',salary:110000, startMonth:8},
+  {id:'fh9', name:'Hire 9', role:'Dev',                salary:120000, startMonth:9},
+  {id:'fh10',name:'Hire 10',role:'Sales / Cust Support',salary:180000, startMonth:10},
 ];
 
 function buildHeadcountGrid(){
@@ -1073,11 +1073,11 @@ function buildRevenue(){
   // ── RAMP PROFILES ─────────────────────────────────────────────────────────
   // Tier 1: starts at 40% in Apr-26 — matches actual volume level in Mar-26 ($68K)
   // preventing a dip at the actuals/forecast boundary. Builds to 100% by Jan-27.
-  const T1_RAMP = [0.35,0.40,0.50,0.60,0.70,0.78,0.85,0.90,0.94,0.97,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
+  const T1_RAMP = [0.40,0.50,0.60,0.70,0.78,0.85,0.90,0.94,0.97,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0,1.0];
 
   // Early release fee adoption ramps separately — feature only just going live
   // Starts at 0%, builds to full adoption assumption over ~9 months
-  const ER_RAMP = [0.00,0.00,0.02,0.05,0.08,0.12,0.15,0.20,0.25,0.28,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30];
+  const ER_RAMP = [0.00,0.02,0.05,0.08,0.12,0.15,0.20,0.25,0.28,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30,0.30];
   function qtrT1(v,s,i){
     if(i<s) return 0;
     return v/3 * T1_RAMP[Math.min(i-s, T1_RAMP.length-1)];
@@ -1420,10 +1420,10 @@ function buildRevenue(){
   const superCost = coreWages.map(w=>w*superRate);
 
   // Payroll tax — applies from Jul-26 (month 3) once above threshold
-  const ptCost = MONTHS.map((_,i)=>i>=4?coreWages[i]*ptRate:0);
+  const ptCost = MONTHS.map((_,i)=>i>=3?coreWages[i]*ptRate:0);
 
   // Overhead (non-wage opex) from actuals, scaled
-  const ohdBase=[67000,69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
+  const ohdBase=[69342,66532,57639,66953,101916,67753,94916,66953,66916,67753,66916,67668,67631,68468,67631,67668,67631,68468,101631,67668,67631];
   const ohd=ohdBase.map(v=>v*ohdMult);
 
   // Cost of sales — scales proportionally with total revenue
@@ -1437,7 +1437,7 @@ function buildRevenue(){
   const cosB = cosBbase.map((v,i) => v + mbanswCoS[i]);
   // Office expense — $2K/month from Jul-26 if any Balmain investment received
   const balmainInvAmt = gv('balmainInv') * 1e6;
-  const officeExp = MONTHS.map((_,i) => (i >= 4 && balmainInvAmt > 0) ? 2000 : 0);
+  const officeExp = MONTHS.map((_,i) => (i >= 3 && balmainInvAmt > 0) ? 2000 : 0);
 
   const exp=MONTHS.map((_,i)=>coreWages[i]+superCost[i]+ptCost[i]+ohd[i]+officeExp[i]);
   const gp=MONTHS.map((_,i)=>totalRev[i]-cosB[i]);
@@ -1448,22 +1448,22 @@ function buildRevenue(){
   const BALMAIN_INV = gv('balmainInv') * 1e6;
   // O'Rourke + Hirst in Apr-26 (month 0), Balmain in Jul-26 (month 3), RE raise in months 15+16
   const equityIn = MONTHS.map((_,i) => {
-    if(i===1)  return OROURKE + HIRST;   // Apr-26
-    if(i===4)  return BALMAIN_INV;        // Jul-26
-    if(i===7||i===8) return reR/2;        // Oct-Nov 26
+    if(i===0)  return OROURKE + HIRST;   // Apr-26
+    if(i===3)  return BALMAIN_INV;        // Jul-26
+    if(i===6||i===7) return reR/2;        // Oct-Nov 26
     return 0;
   });
 
   // R&D Grant — $600K other income in Sep-26 (month 5), shows in revenue
   // R&D Grant — $600K in Sep-26 (month 5) and Sep-27 (month 17)
-  const rdGrant = MONTHS.map((_,i) => (i===6 || i===18) ? 600000 : 0);
+  const rdGrant = MONTHS.map((_,i) => (i===5 || i===17) ? 600000 : 0);
 
   // Loan repayments and other cash movements
   const loanRepayments = MONTHS.map((_,i) => {
     let out = 0;
-    if(i===4)  out += 60000;   // Convertible note + interest — Jul-26
-    if(i===6)  out += 600000;  // AMAL loan repayment — Sep-26 (offsets grant)
-    if(i===17) out += 420000;  // Secured loan + interest — Aug-27
+    if(i===3)  out += 60000;   // Convertible note + interest — Jul-26
+    if(i===5)  out += 600000;  // AMAL loan repayment — Sep-26 (offsets grant)
+    if(i===16) out += 420000;  // Secured loan + interest — Aug-27
     return out;
   });
 
@@ -1906,7 +1906,7 @@ function buildBS(d){
     openingNetIncome: 39315,    // Mar-26 net income
   };
 
-  const QMONTHS = [3,6,9,12,15,18,21];
+  const QMONTHS = [2,5,8,11,14,17,20];
 
   const bs = [];
   let cash         = OB.cash;
@@ -1959,17 +1959,17 @@ function buildBS(d){
     acctPay = -((d.cosB[i] + d.exp[i]) * 0.25);
 
     // ── LOAN REPAYMENTS ── each loan clears at the scheduled month
-    if(i===4)  convertibleNote = 0;   // Convertible note repaid Jul-26
-    if(i===6)  loanAMAL        = 0;   // AMAL loan repaid Sep-26
-    if(i===17) loanSecured     = 0;   // Secured loan repaid Aug-27
+    if(i===3)  convertibleNote = 0;   // Convertible note repaid Jul-26
+    if(i===5)  loanAMAL        = 0;   // AMAL loan repaid Sep-26
+    if(i===16) loanSecured     = 0;   // Secured loan repaid Aug-27
 
     // ── SUNDRY CREDITORS ── wind down over 12 months
     const sundryCreditors = i < 12 ? OB.sundryCreditors * (1 - i/12) : 0;
 
     // ── SHARE CAPITAL ── equity raises
-    if(i===1) shareCapital -= (1000000 + 100000);
-    if(i===4) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
-    if(i===7||i===8) shareCapital -= reRaiseTotal/2;
+    if(i===0) shareCapital -= (1000000 + 100000);
+    if(i===3) shareCapital -= parseFloat(document.getElementById('balmainInv').value)*1e6;
+    if(i===6||i===7) shareCapital -= reRaiseTotal/2;
 
     // ── TOTALS ──
     const totalLoans          = convertibleNote + loanAMAL + loanSecured;
@@ -2260,27 +2260,27 @@ function buildFullReport(){
 //               12=Apr-27, 13=May-27, 14=Jun-27, 15=Jul-27, 16=Aug-27, 17=Sep-27
 const PROJ_DEFAULTS = {
   // Tier 1 — 0=Mar-26 now, so Apr-26=1
-  s_trilogy: 1,   // Apr-26
-  s_remara:  1,   // Apr-26
-  s_mba:     1,   // Apr-26
+  s_trilogy: 0,   // Apr-26
+  s_remara:  0,   // Apr-26
+  s_mba:     0,   // Apr-26
   // Tier 2
-  s_mbansw:  6,   // Sep-26
-  s_jc:      10,  // Jan-27
-  s_mw:      10,  // Jan-27
-  s_reiv:    10,  // Jan-27
+  s_mbansw:  5,   // Sep-26
+  s_jc:      9,   // Jan-27
+  s_mw:      9,   // Jan-27
+  s_reiv:    9,   // Jan-27
   // Tier 3 — staggered from Sep-26 through Sep-27
-  s_avari:   6,   // Sep-26
-  s_radius:  6,   // Sep-26
-  s_plenary1:6,   // Sep-26
-  s_moda:    7,   // Oct-26
-  s_portside:7,   // Oct-26
-  s_balmain: 4,   // Jul-26  — lending volume, conservative start
-  s_logispace:8,  // Nov-26
-  s_alceon:  9,   // Dec-26
-  s_amal:    9,   // Dec-26
-  s_pipe2b:  10,  // Jan-27  — broader pipeline, emerges later
-  s_plenary2:12,  // Mar-27
-  s_plenary3:15,  // Jun-27  — final Plenary project
+  s_avari:   5,   // Sep-26
+  s_radius:  5,   // Sep-26
+  s_plenary1:5,   // Sep-26
+  s_moda:    6,   // Oct-26
+  s_portside:6,   // Oct-26
+  s_balmain: 3,   // Jul-26  — lending volume, conservative start
+  s_logispace:7,  // Nov-26
+  s_alceon:  8,   // Dec-26
+  s_amal:    8,   // Dec-26
+  s_pipe2b:  9,   // Jan-27  — broader pipeline, emerges later
+  s_plenary2:11,  // Mar-27
+  s_plenary3:14,  // Jun-27  — final Plenary project
 };
 
 function populateDropdowns(){
