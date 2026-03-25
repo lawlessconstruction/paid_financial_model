@@ -868,62 +868,56 @@ tr.net td:first-child{color:var(--t1);}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
 // ALL months: 8 actuals + 21 forecast = 29 total
-const ACT_MONTHS=['Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26','Mar-26'];
+const ACT_MONTHS=['Jul-25','Aug-25','Sep-25','Oct-25','Nov-25','Dec-25','Jan-26','Feb-26'];
 const FORE_MONTHS=['Apr-26','May-26','Jun-26','Jul-26','Aug-26','Sep-26','Oct-26','Nov-26','Dec-26','Jan-27','Feb-27','Mar-27','Apr-27','May-27','Jun-27','Jul-27','Aug-27','Sep-27','Oct-27','Nov-27','Dec-27'];
 const MONTHS=FORE_MONTHS; // forecast model still uses 0-based FORE_MONTHS
 const N=21;
-const NA=9; // number of actual months
+const NA=8; // number of actual months
 
 // Actuals from Excel (read-only — not affected by scenario sliders)
 const ACTUALS = {
-  revenue:   [0,     3197,  10541, 13342, 14845, 20401, 27142, 27243, 37023],
-  cos:       [0,     831,   5017,  5546,  6129,  7048,  8106,  5360,  6164],
-  grossProfit:[0,    2366,  5524,  7796,  8716,  13353, 19036, 21883, 30859],
-  govtGrant: [0,     0,     0,     590718,0,     0,     0,     0,     0    ],
-  expenses:  [0,     108270,176425,119325,126930,98594, 98568, 50498, 50516],
-  ebitda:    [0,    -105904,-170901,479189,-118214,-85241,-79532,-28615,-19658],
-  // cashflow
-  openingCash:[55272,376896,68480, 160887,43041, 50103, 5789,  306193,540513],
-  cashIn:    [444525,70541, 217278,14583, 120401,227142,436937,177243,37023],
-  cashOut:   [122901,378957,124871,132429,113340,271455,136533,60083, 60905],
-  closingCash:[376896,68480,160887,43041, 50103, 5789,  306193,270257,246374],
-  // breakdown
-  trilogy:   [0,     458,   203,   1990,  454,   1080,  2700,  4590,  7020],
-  remara:    [0,     0,     0,     0,     1991,  4257,  7132,  11182, 16729],
-  mbaAbic:   [0,     2584,  9801,  10967, 12229, 14164, 16436, 9383,  10273],
-  other:     [0,     154,   538,   385,   171,   900,   900,   450,   450  ],
+  // Updated from PaidDOT-MGTFins_Feb2026_Mthly.xlsx — Jul-25 to Feb-26 (8 months)
+  revenue:    [2907,  11084, 93960, 558159,12444, 199048,91577, 2522 ],
+  cos:        [179,   0,     606,   3779,  6992,  4474,  1815,  4672 ],
+  grossProfit:[2728,  11084, 93354, 554381,5452,  194574,89762, -2150],
+  govtGrant:  [0,     0,     590718,0,     0,     0,     0,     0    ],
+  expenses:   [131867,146116,136346,118846,110862,104508,121168,445233],
+  ebitda:     [-129140,-135032,547726,435535,-105410,90427,-31407,-447383],
+  // cashflow — closing cash from trading account
+  openingCash:[0,     376896,68480, 160887,69323, 76525, 131741,147486],
+  cashIn:     [376896,68480, 160887,69323, 76525, 131741,147486,329230],
+  cashOut:    [0,     0,     0,     0,     0,     0,     0,     0    ],
+  closingCash:[376896,68480, 160887,69323, 76525, 131741,147486,329230],
+  // revenue breakdown (contract fees = total income for now)
+  trilogy:    [0,     0,     0,     0,     0,     0,     0,     0    ],
+  remara:     [0,     0,     0,     0,     0,     0,     0,     0    ],
+  mbaAbic:    [2907,  11084, 93960, 558159,12444, 199048,91577, 2522 ],
+  other:      [0,     0,     0,     0,     0,     0,     0,     0    ],
 };
 
-// Balance Sheet actuals Jul-25 to Mar-26 (from DOT_BS-Forecast sheet)
+// Balance Sheet actuals Jul-25 to Feb-26 (from PaidDOT-MGTFins_Feb2026_Mthly.xlsx)
 const BS_ACTUALS = {
-  cash:         [376896, 68480,  160887, 69041,  76103,  50103,  5789,   306193, 540513],
-  cashOnHand:   [60,     45,     45,     45,     45,     45,     45,     45,     45    ],
-  testAcct:     [1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000,   1000  ],
-  acctRec:      [0,      0,      0,      100000, 0,      0,      0,      0,      0     ],
-  ip:           [328261, 328261, 328261, 328261, 328261, 634551, 876644, 876644, 1938155],
-  totalAssets:  [706217, 397786, 490193, 498347, 405409, 685699, 883478, 1183882,2479713],
-  acctPay:      [-75680, -44750, -46575, -50423, -53917, -159065,-164830,-324532,-37902],
-  gstLiab:      [18444,  22671,  2860,   -49448, -46390, -46821, -47026, -49498, -54194],
-  paygLiab:     [-201554,-215681,-28016, -42070, -56124, -62624, -62949, -62949, -62949],
-  superPay:     [-65236, -71736, -6500,  -13000, -19500, -26000, -6500,  -6760,  -6760 ],
-  sundryC:      [-58119, -52190, -40331, -36027, -33910, -29110, -24310, -19510, -14710],
-  // Additional liabilities present in early months — cleared by Dec-25
-  // (ATO clearing, payroll clearing, director loans etc)
-  // Calculated as: totalLiab minus all known components
-  otherLiab:    [-494179,-437609,-207649,292351, 492351, 550000, 350000, 250000, 350000],
-  // Individual loans with correct draw-down timing
-  // Convertible note: $50K taken before Jul-25, shown as $50K throughout until repaid Jul-26
-  convertibleNote:[-50000,-50000,-50000,-50000,-50000,-50000,-50000,-50000,-50000],
-  // AMAL $600K loan: drawn $200K Nov-25, $200K Dec-25, $100K Feb-26, $100K Mar-26
-  loanAMAL:     [0,      0,      0,      0,      -200000,-400000,-400000,-500000,-600000],
-  // Secured loan: $300K taken before Jul-25, shown as $300K throughout until repaid Aug-27
-  loanSecured:  [-300000,-300000,-300000,-300000,-300000,-300000,-300000,-300000,-300000],
-  totalLiab:    [-1226324,-1149295,-676211,-248617,-267490,-523620,-705615,-1063249,-776515],
-  shareCapital: [-5127912,-5127912,-5127912,-5127912,-5127912,-5233507,-5333507,-5333507,-6833507],
-  retEarnings:  [5617382,5617382,5617382,5617382,5617382,4991896,5071428,5155643,5212873],
-  netIncome:    [129140, 263952, -301549,-737297,-625486, 79532,  84215,  57230,  39315 ],
-  totalEquity:  [618610, 753422, 187921, -247827,-136016,-162079,-177864,-120634,-1459439],
-  totalLiabEq:  [-706217,-397786,-490193,-498347,-405409,-685699,-883479,-1183883,-2479713],
+  cash:         [376896, 68480,  160887, 69323,  76525,  131741, 147486, 329230],
+  cashOnHand:   [60,     45,     45,     45,     45,     45,     45,     45    ],
+  testAcct:     [1000,   1000,   1000,   1000,   1000,   1000,   1000,   995   ],
+  acctRec:      [0,      0,      0,      0,      0,      0,      0,      0     ],
+  ip:           [328261, 328261, 328261, 328261, 328261, 328261, 328261, 0     ],
+  totalAssets:  [366217, -2213,  -7726,  500238, 507239, 562254, 577798, 331074],
+  acctPay:      [-75680, -44750, -46575, -50423, -46796, 0,      0,      0     ],
+  gstLiab:      [18444,  22693,  4259,   -48072, -45673, -67979, -73819, -2744 ],
+  paygLiab:     [-201554,-215681,-28016, -42070, -56124, -29096, -44138, -16173],
+  superPay:     [-65236, -71736, -6500,  -13000, -19500, -26000, -33158, -56017],
+  sundryC:      [-58119, -52190, -61564, -57260, -55143, -53027, -50910, -27998],
+  convertibleNote:[-160000,-50000,-50000,-50000,-50000,-50000,-50000,-50000   ],
+  loanAMAL:     [0,      0,      0,      0,      0,      0,      0,      0     ],
+  loanSecured:  [-300000,-300000,-283225,-283225,-283225,-283225,-283225,-383225],
+  otherLiab:    [-319513,-313185,0,      0,      0,      0,      0,      0     ],
+  totalLiab:    [-1180729,-1043920,-490691,-563121,-575532,-509327,-535249,-536157],
+  shareCapital: [-4833507,-4833507,-4833507,-4833507,-4933507,-4933507,-4954535,-5054535],
+  retEarnings:  [5617382,5617382,5617382,5617382,5617382,5617382,5617382,5517630],
+  netIncome:    [129140, 264171, -283554,-719089,-613678,-704105,-672699,-225315],
+  totalEquity:  [913015, 1048046,500321, 64786,  70196,  -20231, -9852,  237780],
+  totalLiabEq:  [-366217,2213,   7726,   -500238,-507239,-562254,-577798,-331074],
 };
 let tierOn=[true,false,false];
 let panelOpen=[true,true,true];
@@ -1890,22 +1884,22 @@ function updateModel(){
 function buildBS(d){
   // Opening balances Apr-26 (from actuals in Excel)
   const OB = {
-    cash:             492748,
+    cash:             329230,  // Feb-26 closing cash
     cashOnHand:       45,
     testAcct:         1000,
-    ip:               2238155,  // $1,938,155 existing IP + $300K AFSL licence capitalised Apr-26
-    acctPayable:      -37939,
-    gstLiab:          -60972,
-    paygLiab:         -68799,
-    sundryCreditors:  -9910,
-    superPayable:     -6760,
-    // Actual loans (replacing stale $2.2M inter-entity balance):
-    convertibleNote:  -60000,   // $50K + interest, repaid Jul-26 (month 3)
-    loanAMAL:         -600000,  // $600K, repaid Sep-26 (month 5)
-    loanSecured:      -420000,  // $300K + interest, repaid Aug-27 (month 16)
-    shareCapital:     -6833507,
-    retainedEarnings: 5552188,  // $5,252,188 + $300K AFSL licence non-cash capitalisation
-    openingNetIncome: 62175,
+    ip:               2238261,  // $328,261 existing IP + $300K AFSL licence + formation costs
+    acctPayable:      0,
+    gstLiab:          -2744,
+    paygLiab:         -16173,
+    sundryCreditors:  -27998,
+    superPayable:     -56017,
+    // Loans as at Feb-26:
+    convertibleNote:  -50000,   // $50K convertible note, repaid Jul-26 as $60K
+    loanAMAL:         -600000,  // $600K AMAL loan, repaid Sep-26
+    loanSecured:      -383225,  // Unsecured loans per Feb-26 BS, repaid Aug-27 as $420K
+    shareCapital:     -5054535,
+    retainedEarnings: 5517630,
+    openingNetIncome: -225315,  // Feb-26 net income
   };
 
   const QMONTHS = [2,5,8,11,14,17,20];
